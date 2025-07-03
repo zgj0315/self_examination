@@ -1,6 +1,8 @@
-[package]
-name = "server"
-version = "0.1.0"
-edition = "2024"
+[workspace]
+resolver = "2"
 
-[dependencies]
+members = [
+  "entity",
+  "migration",
+  "server",
+]

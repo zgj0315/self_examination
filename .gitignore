@@ -1,6 +1,7 @@
 .DS_Store
+Cargo.lock
+*/*/Cargo.lock
 server/target
-server/Cargo.lock
 ui/node_modules
 ui/package-lock.json
 ui/dist
