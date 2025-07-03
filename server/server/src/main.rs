@@ -1,6 +1,6 @@
 use std::net::SocketAddr;
 
-use axum::{Router, routing::get};
+use axum::Router;
 use migration::{Migrator, MigratorTrait};
 use sea_orm::{ConnectOptions, Database};
 use server::{AppState, article};
@@ -15,9 +15,7 @@ async fn main() -> anyhow::Result<()> {
     let pg_conn = Database::connect(opt).await?;
     Migrator::up(&pg_conn, None).await?;
     let app_state = AppState { pg_conn };
-    let app = Router::new()
-        .route("/api/article/search", get(article::search))
-        .with_state(app_state);
+    let app = Router::new().nest("/api/article", article::routers(app_state));
     let listener = tokio::net::TcpListener::bind("0.0.0.0:2020").await?;
     log::info!("listening on {}", listener.local_addr()?);
     axum::serve(
