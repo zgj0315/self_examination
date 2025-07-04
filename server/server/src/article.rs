@@ -4,10 +4,12 @@ use axum::{
     extract::{Query, State},
     http::StatusCode,
     response::IntoResponse,
-    routing::get,
+    routing::{get, post},
 };
 use entity::tbl_article;
-use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder};
+use sea_orm::{
+    ActiveValue::Set, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use validator::Validate;
@@ -15,6 +17,7 @@ use validator::Validate;
 pub fn routers(state: AppState) -> Router {
     Router::new()
         .route("/search", get(search))
+        .route("/create", post(create))
         .with_state(state)
 }
 
@@ -122,4 +125,43 @@ async fn search(
            }
         )),
     )
+}
+
+#[derive(Deserialize, Debug, Validate)]
+struct CreateInputDto {
+    title: String,
+    content: String,
+}
+async fn create(
+    app_state: State<AppState>,
+    Json(create_input_dto): Json<CreateInputDto>,
+) -> impl IntoResponse {
+    let tbl_article_am = tbl_article::ActiveModel {
+        title: Set(create_input_dto.title),
+        content: Set(create_input_dto.content),
+        ..Default::default()
+    };
+    match tbl_article::Entity::insert(tbl_article_am)
+        .exec(&app_state.pg_conn)
+        .await
+    {
+        Ok(insert_result) => {
+            let artile_id = insert_result.last_insert_id;
+            return (
+                StatusCode::OK,
+                [("code", "200"), ("msg", "ok")],
+                Json(json!({
+                    "artile_id":artile_id
+                })),
+            );
+        }
+        Err(e) => {
+            log::error!("tbl_article insert err: {}", e);
+            return (
+                StatusCode::OK,
+                [("code", "500"), ("msg", "insert pg err")],
+                Json(json!({})),
+            );
+        }
+    }
 }
