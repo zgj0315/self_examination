@@ -1,7 +1,8 @@
 .DS_Store
 Cargo.lock
 */*/Cargo.lock
-server/target
+*/target
+*/*/data
 */*/log
 ui/node_modules
 ui/package-lock.json
