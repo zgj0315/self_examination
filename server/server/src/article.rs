@@ -216,6 +216,7 @@ async fn update(
     if let Some(content) = update_input_dto.content {
         tbl_article_am.content = Set(content);
     }
+    tbl_article_am.updated_at = Set(chrono::Utc::now().naive_utc());
     match tbl_article::Entity::update(tbl_article_am)
         .exec(&app_state.db_conn)
         .await
