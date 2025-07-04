@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import type { FormProps } from "antd";
-import { Button, Form, Input, message, Table } from "antd";
+import { Button, Form, Input, message, Table, Popconfirm } from "antd";
 import axios from "axios";
 
 type FieldType = {
@@ -47,6 +47,16 @@ const App: React.FC = () => {
       setLoading(false);
     }
   };
+  const handleDelete = async (id: number) => {
+    try {
+      await axios.delete(`/api/articles/${id}`);
+      message.success("删除成功");
+      handleQuery(); // 删除后刷新列表
+    } catch (error) {
+      console.error("删除失败:", error);
+      message.error("删除失败");
+    }
+  };
   const columns = [
     {
       title: "ID",
@@ -62,6 +72,22 @@ const App: React.FC = () => {
       title: "内容",
       dataIndex: "content",
       key: "content",
+    },
+    {
+      title: "操作",
+      key: "action",
+      render: (_: any, record: Article) => (
+        <Popconfirm
+          title="确定要删除这条记录吗？"
+          onConfirm={() => handleDelete(record.id)}
+          okText="确定"
+          cancelText="取消"
+        >
+          <Button danger type="link">
+            删除
+          </Button>
+        </Popconfirm>
+      ),
     },
   ];
   return (
