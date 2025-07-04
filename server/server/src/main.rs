@@ -27,12 +27,12 @@ async fn main() -> anyhow::Result<()> {
     }
 
     let db_url = format!("sqlite://{}", db_path.to_string_lossy());
-    let pg_conn = Database::connect(&db_url).await?;
+    let db_conn = Database::connect(&db_url).await?;
     log::info!("connect to {}", db_url);
 
-    Migrator::up(&pg_conn, None).await?;
+    Migrator::up(&db_conn, None).await?;
 
-    let app_state = AppState { pg_conn };
+    let app_state = AppState { db_conn };
     let app = Router::new()
         .fallback_service(ServeDir::new("../../ui/dist"))
         .nest("/api", article::routers(app_state));

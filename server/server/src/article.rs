@@ -1,14 +1,15 @@
 use crate::AppState;
 use axum::{
     Json, Router,
-    extract::{Query, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     response::IntoResponse,
-    routing::post,
+    routing::{get, patch},
 };
 use entity::tbl_article;
 use sea_orm::{
-    ActiveValue::Set, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
+    ActiveValue::Set, ColumnTrait, EntityTrait, IntoActiveModel, PaginatorTrait, QueryFilter,
+    QueryOrder,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -16,7 +17,8 @@ use validator::Validate;
 
 pub fn routers(state: AppState) -> Router {
     Router::new()
-        .route("/articles", post(create).get(query))
+        .route("/articles", get(query).post(create))
+        .route("/articles/{id}", patch(update).delete(delete))
         .with_state(state)
 }
 
@@ -55,7 +57,7 @@ async fn query(
     }
     let paginator = select
         .order_by_desc(tbl_article::Column::UpdatedAt)
-        .paginate(&app_state.pg_conn, query_input_dto.size);
+        .paginate(&app_state.db_conn, query_input_dto.size);
     let num_pages = match paginator.num_pages().await {
         Ok(v) => v,
         Err(e) => {
@@ -141,7 +143,7 @@ async fn create(
         ..Default::default()
     };
     match tbl_article::Entity::insert(tbl_article_am)
-        .exec(&app_state.pg_conn)
+        .exec(&app_state.db_conn)
         .await
     {
         Ok(insert_result) => {
@@ -159,6 +161,126 @@ async fn create(
             return (
                 StatusCode::OK,
                 [("code", "500"), ("msg", "insert pg err")],
+                Json(json!({})),
+            );
+        }
+    }
+}
+
+#[derive(Deserialize, Debug, Validate)]
+struct UpdateInputDto {
+    title: Option<String>,
+    content: Option<String>,
+}
+#[derive(Serialize, Debug)]
+struct UpdateOutputDto {
+    id: i32,
+    title: String,
+    content: String,
+    created_at: i64,
+    updated_at: i64,
+}
+async fn update(
+    Path(id): Path<i32>,
+    State(app_state): State<AppState>,
+    Json(update_input_dto): Json<UpdateInputDto>,
+) -> impl IntoResponse {
+    let tbl_article = match tbl_article::Entity::find_by_id(id)
+        .one(&app_state.db_conn)
+        .await
+    {
+        Ok(tbl_article_opt) => match tbl_article_opt {
+            Some(model) => model,
+            None => {
+                log::error!("not found: {id}",);
+                return (
+                    StatusCode::BAD_REQUEST,
+                    [("code", "400"), ("msg", "not found")],
+                    Json(json!({})),
+                );
+            }
+        },
+        Err(e) => {
+            log::error!("find by id {id} err: {e}");
+            return (
+                StatusCode::BAD_REQUEST,
+                [("code", "400"), ("msg", "find by id {id} err")],
+                Json(json!({})),
+            );
+        }
+    };
+    let mut tbl_article_am = tbl_article.into_active_model();
+    if let Some(title) = update_input_dto.title {
+        tbl_article_am.title = Set(title);
+    }
+    if let Some(content) = update_input_dto.content {
+        tbl_article_am.content = Set(content);
+    }
+    match tbl_article::Entity::update(tbl_article_am)
+        .exec(&app_state.db_conn)
+        .await
+    {
+        Ok(model) => {
+            let update_output_dto = UpdateOutputDto {
+                id,
+                title: model.title,
+                content: model.content,
+                created_at: model.created_at.and_utc().timestamp_millis(),
+                updated_at: model.updated_at.and_utc().timestamp_millis(),
+            };
+            let json = match serde_json::to_string(&update_output_dto) {
+                Ok(v) => v,
+                Err(e) => {
+                    log::error!("update_output_dto to_string() {id} err: {e}");
+                    return (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        [("code", "500"), ("msg", "update_output_dto to_string()")],
+                        Json(json!({})),
+                    );
+                }
+            };
+            return (
+                StatusCode::OK,
+                [("code", "200"), ("msg", "ok")],
+                Json(sea_orm::JsonValue::String(json)),
+            );
+        }
+        Err(e) => {
+            log::error!("update db {id} err: {e}");
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                [("code", "500"), ("msg", "update db err")],
+                Json(json!({})),
+            );
+        }
+    }
+}
+
+async fn delete(Path(id): Path<i32>, State(app_state): State<AppState>) -> impl IntoResponse {
+    match tbl_article::Entity::delete_by_id(id)
+        .exec(&app_state.db_conn)
+        .await
+    {
+        Ok(delete_result) => {
+            if delete_result.rows_affected == 1 {
+                log::info!("delete {id} success");
+            } else {
+                log::warn!(
+                    "delete {id} success, affected row: {}",
+                    delete_result.rows_affected
+                );
+            }
+            return (
+                StatusCode::OK,
+                [("code", "200"), ("msg", "ok")],
+                Json(json!({})),
+            );
+        }
+        Err(e) => {
+            log::error!("delete db {id} err: {e}");
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                [("code", "500"), ("msg", "delete db err")],
                 Json(json!({})),
             );
         }

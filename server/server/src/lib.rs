@@ -4,5 +4,5 @@ pub mod article;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub pg_conn: DatabaseConnection,
+    pub db_conn: DatabaseConnection,
 }
