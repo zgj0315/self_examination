@@ -16,7 +16,7 @@ async fn main() -> anyhow::Result<()> {
 
     let db_dir = Path::new("./data");
     if !db_dir.exists() {
-        fs::create_dir_all(&db_dir)?;
+        fs::create_dir_all(db_dir)?;
         log::info!("create dir: {}", db_dir.to_string_lossy());
     }
 

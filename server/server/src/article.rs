@@ -148,21 +148,21 @@ async fn create(
     {
         Ok(insert_result) => {
             let artile_id = insert_result.last_insert_id;
-            return (
+            (
                 StatusCode::OK,
                 [("code", "200"), ("msg", "ok")],
                 Json(json!({
                     "artile_id":artile_id
                 })),
-            );
+            )
         }
         Err(e) => {
             log::error!("tbl_article insert err: {}", e);
-            return (
+            (
                 StatusCode::OK,
                 [("code", "500"), ("msg", "insert pg err")],
                 Json(json!({})),
-            );
+            )
         }
     }
 }
@@ -240,19 +240,19 @@ async fn update(
                     );
                 }
             };
-            return (
+            (
                 StatusCode::OK,
                 [("code", "200"), ("msg", "ok")],
                 Json(sea_orm::JsonValue::String(json)),
-            );
+            )
         }
         Err(e) => {
             log::error!("update db {id} err: {e}");
-            return (
+            (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 [("code", "500"), ("msg", "update db err")],
                 Json(json!({})),
-            );
+            )
         }
     }
 }
@@ -271,19 +271,19 @@ async fn delete(Path(id): Path<i32>, State(app_state): State<AppState>) -> impl 
                     delete_result.rows_affected
                 );
             }
-            return (
+            (
                 StatusCode::OK,
                 [("code", "200"), ("msg", "ok")],
                 Json(json!({})),
-            );
+            )
         }
         Err(e) => {
             log::error!("delete db {id} err: {e}");
-            return (
+            (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 [("code", "500"), ("msg", "delete db err")],
                 Json(json!({})),
-            );
+            )
         }
     }
 }
