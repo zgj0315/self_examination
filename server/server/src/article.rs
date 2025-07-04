@@ -7,10 +7,7 @@ use axum::{
     routing::get,
 };
 use entity::tbl_article;
-use sea_orm::{
-    EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
-    sea_query::{Expr, extension::postgres::PgExpr},
-};
+use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use validator::Validate;
@@ -45,13 +42,13 @@ async fn search(
     if let Some(title) = search_input_dto.title {
         if !title.is_empty() {
             let like_pattern = format!("%{title}%");
-            select = select.filter(Expr::col(tbl_article::Column::Title).ilike(like_pattern));
+            select = select.filter(tbl_article::Column::Title.like(like_pattern));
         }
     }
     if let Some(content) = search_input_dto.content {
         if !content.is_empty() {
             let like_pattern = format!("%{content}%");
-            select = select.filter(Expr::col(tbl_article::Column::Content).ilike(like_pattern));
+            select = select.filter(tbl_article::Column::Content.like(like_pattern));
         }
     }
     let paginator = select
