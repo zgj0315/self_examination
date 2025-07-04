@@ -17,7 +17,7 @@ type Article = {
 const onFinish: FormProps<FieldType>["onFinish"] = (values) => {
   console.log("Success:", values);
   try {
-    const response = axios.post("/api/article/create", values);
+    const response = axios.post("/api/articles", values);
     console.log("create success, response: ", response);
     message.success("create success");
   } catch (e) {
@@ -37,7 +37,7 @@ const App: React.FC = () => {
   const handleQuery = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("/api/article/search?size=20&page=0");
+      const response = await axios.get("/api/articles?size=20&page=0");
       setData(response.data._embedded?.article); // 假设返回数组，如 [{ id: 1, title: 't', content: 'c' }]
       message.success("查询成功");
     } catch (e) {

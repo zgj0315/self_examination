@@ -35,7 +35,7 @@ async fn main() -> anyhow::Result<()> {
     let app_state = AppState { pg_conn };
     let app = Router::new()
         .fallback_service(ServeDir::new("../../ui/dist"))
-        .nest("/api/article", article::routers(app_state));
+        .nest("/api", article::routers(app_state));
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;
     log::info!("listening on {}", listener.local_addr()?);
 

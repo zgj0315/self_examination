@@ -4,7 +4,7 @@ use axum::{
     extract::{Query, State},
     http::StatusCode,
     response::IntoResponse,
-    routing::{get, post},
+    routing::post,
 };
 use entity::tbl_article;
 use sea_orm::{
@@ -16,13 +16,12 @@ use validator::Validate;
 
 pub fn routers(state: AppState) -> Router {
     Router::new()
-        .route("/search", get(search))
-        .route("/create", post(create))
+        .route("/articles", post(create).get(query))
         .with_state(state)
 }
 
 #[derive(Deserialize, Debug, Validate)]
-struct SearchInputDto {
+struct QueryInputDto {
     title: Option<String>,
     content: Option<String>,
     size: u64,
@@ -30,25 +29,25 @@ struct SearchInputDto {
 }
 
 #[derive(Serialize, Debug)]
-struct SearchOutputDto {
+struct QueryOutputDto {
     id: i32,
     title: String,
     content: String,
     created_at: i64,
     updated_at: i64,
 }
-async fn search(
+async fn query(
     app_state: State<AppState>,
-    Query(search_input_dto): Query<SearchInputDto>,
+    Query(query_input_dto): Query<QueryInputDto>,
 ) -> impl IntoResponse {
     let mut select = tbl_article::Entity::find();
-    if let Some(title) = search_input_dto.title {
+    if let Some(title) = query_input_dto.title {
         if !title.is_empty() {
             let like_pattern = format!("%{title}%");
             select = select.filter(tbl_article::Column::Title.like(like_pattern));
         }
     }
-    if let Some(content) = search_input_dto.content {
+    if let Some(content) = query_input_dto.content {
         if !content.is_empty() {
             let like_pattern = format!("%{content}%");
             select = select.filter(tbl_article::Column::Content.like(like_pattern));
@@ -56,7 +55,7 @@ async fn search(
     }
     let paginator = select
         .order_by_desc(tbl_article::Column::UpdatedAt)
-        .paginate(&app_state.pg_conn, search_input_dto.size);
+        .paginate(&app_state.pg_conn, query_input_dto.size);
     let num_pages = match paginator.num_pages().await {
         Ok(v) => v,
         Err(e) => {
@@ -85,7 +84,7 @@ async fn search(
             );
         }
     };
-    let tbl_articles = match paginator.fetch_page(search_input_dto.page).await {
+    let tbl_articles = match paginator.fetch_page(query_input_dto.page).await {
         Ok(v) => v,
         Err(e) => {
             log::error!("fetch_page err: {}", e);
@@ -101,7 +100,7 @@ async fn search(
     };
     let mut articles = Vec::new();
     for tbl_article in tbl_articles {
-        articles.push(SearchOutputDto {
+        articles.push(QueryOutputDto {
             id: tbl_article.id,
             title: tbl_article.title,
             content: tbl_article.content,
@@ -115,7 +114,7 @@ async fn search(
         Json(json!(
             {
             "page":{
-              "size":search_input_dto.size,
+              "size":query_input_dto.size,
               "total_elements":num_items,
               "total_pages":num_pages
             },
