@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import type { FormProps } from "antd";
 import {
   Button,
   Form,
@@ -10,6 +9,7 @@ import {
   Layout,
   Menu,
   theme,
+  Modal,
 } from "antd";
 import axios from "axios";
 import {
@@ -39,23 +39,24 @@ type Article = {
   content: string;
 };
 
-const onFinish: FormProps<FieldType>["onFinish"] = (values) => {
-  console.log("Success:", values);
-  try {
-    const response = axios.post("/api/articles", values);
-    console.log("create success, response: ", response);
-    message.success("create success");
-  } catch (e) {
-    console.error("create error: ", e);
-    message.error("create error");
-  }
-};
-
-const onFinishFailed: FormProps<FieldType>["onFinishFailed"] = (errorInfo) => {
-  console.log("Failed:", errorInfo);
-};
-
 const App: React.FC = () => {
+  const [form] = Form.useForm();
+  const [open, setOpen] = useState(false);
+
+  const onCreate = (values: FieldType) => {
+    console.log("Received values of form: ", values);
+    try {
+      const response = axios.post("/api/articles", values);
+      console.log("create success, response: ", response);
+      message.success("create success");
+    } catch (e) {
+      console.error("create error: ", e);
+      message.error("create error");
+    }
+    setOpen(false);
+    handleQuery();
+  };
+
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
@@ -151,33 +152,54 @@ const App: React.FC = () => {
               borderRadius: borderRadiusLG,
             }}
           >
-            <Form
-              onFinish={onFinish}
-              onFinishFailed={onFinishFailed}
-              autoComplete="off"
+            <Button type="primary" onClick={() => setOpen(true)}>
+              New Article
+            </Button>
+            <Modal
+              open={open}
+              title="Create a new article"
+              okText="Create"
+              cancelText="Cancel"
+              okButtonProps={{ autoFocus: true, htmlType: "submit" }}
+              onCancel={() => setOpen(false)}
+              destroyOnHidden
+              modalRender={(dom) => (
+                <Form
+                  layout="vertical"
+                  form={form}
+                  name="form_in_modal"
+                  clearOnDestroy
+                  onFinish={(values) => onCreate(values)}
+                >
+                  {dom}
+                </Form>
+              )}
             >
-              <Form.Item<FieldType>
-                label="Title"
+              <Form.Item
                 name="title"
-                rules={[{ required: true, message: "Please input title!" }]}
+                label="Title"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input the title of article!",
+                  },
+                ]}
               >
                 <Input />
               </Form.Item>
-
-              <Form.Item<FieldType>
-                label="Content"
+              <Form.Item
                 name="content"
-                rules={[{ required: true, message: "Please input content!" }]}
+                label="Content"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input the Content of article!",
+                  },
+                ]}
               >
-                <Input.TextArea />
+                <Input type="textarea" />
               </Form.Item>
-
-              <Form.Item>
-                <Button type="primary" htmlType="submit">
-                  Submit
-                </Button>
-              </Form.Item>
-            </Form>
+            </Modal>
             {/* <Form.Item> */}
             <Button style={{ marginLeft: 8 }} onClick={handleQuery}>
               查询
