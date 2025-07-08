@@ -105,7 +105,7 @@ const App: React.FC = () => {
     {
       title: "操作",
       key: "action",
-      render: (_: any, record: Article) => (
+      render: (_: unknown, record: Article) => (
         <Popconfirm
           title="确定要删除这条记录吗？"
           onConfirm={() => handleDelete(record.id)}
