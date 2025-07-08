@@ -1,7 +1,32 @@
 import React, { useState } from "react";
 import type { FormProps } from "antd";
-import { Button, Form, Input, message, Table, Popconfirm } from "antd";
+import {
+  Button,
+  Form,
+  Input,
+  message,
+  Table,
+  Popconfirm,
+  Layout,
+  Menu,
+  theme,
+} from "antd";
 import axios from "axios";
+import {
+  UploadOutlined,
+  UserOutlined,
+  VideoCameraOutlined,
+} from "@ant-design/icons";
+
+const { Header, Content, Footer, Sider } = Layout;
+
+const items = [UserOutlined, VideoCameraOutlined, UploadOutlined].map(
+  (icon, index) => ({
+    key: String(index + 1),
+    icon: React.createElement(icon),
+    label: `Nav ${index + 1}`,
+  })
+);
 
 type FieldType = {
   title?: string;
@@ -31,6 +56,10 @@ const onFinishFailed: FormProps<FieldType>["onFinishFailed"] = (errorInfo) => {
 };
 
 const App: React.FC = () => {
+  const {
+    token: { colorBgContainer, borderRadiusLG },
+  } = theme.useToken();
+
   const [data, setData] = useState<Article[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -91,51 +120,84 @@ const App: React.FC = () => {
     },
   ];
   return (
-    <>
-      <Form
-        name="basic"
-        labelCol={{ span: 8 }}
-        wrapperCol={{ span: 16 }}
-        style={{ maxWidth: 600 }}
-        initialValues={{ remember: true }}
-        onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
-        autoComplete="off"
+    <Layout>
+      <Sider
+        breakpoint="lg"
+        collapsedWidth="0"
+        onBreakpoint={(broken) => {
+          console.log(broken);
+        }}
+        onCollapse={(collapsed, type) => {
+          console.log(collapsed, type);
+        }}
       >
-        <Form.Item<FieldType>
-          label="Title"
-          name="title"
-          rules={[{ required: true, message: "Please input title!" }]}
-        >
-          <Input />
-        </Form.Item>
+        <div className="demo-logo-vertical" />
+        <Menu
+          theme="dark"
+          mode="inline"
+          defaultSelectedKeys={["4"]}
+          items={items}
+        />
+      </Sider>
+      <Layout>
+        <Header style={{ padding: 0, background: colorBgContainer }} />
+        <Content>
+          <div
+            style={{
+              padding: 24,
+              minHeight: 360,
+              minWidth: 600,
+              background: colorBgContainer,
+              borderRadius: borderRadiusLG,
+            }}
+          >
+            <Form
+              onFinish={onFinish}
+              onFinishFailed={onFinishFailed}
+              autoComplete="off"
+            >
+              <Form.Item<FieldType>
+                label="Title"
+                name="title"
+                rules={[{ required: true, message: "Please input title!" }]}
+              >
+                <Input />
+              </Form.Item>
 
-        <Form.Item<FieldType>
-          label="Content"
-          name="content"
-          rules={[{ required: true, message: "Please input content!" }]}
-        >
-          <Input.TextArea />
-        </Form.Item>
+              <Form.Item<FieldType>
+                label="Content"
+                name="content"
+                rules={[{ required: true, message: "Please input content!" }]}
+              >
+                <Input.TextArea />
+              </Form.Item>
 
-        <Form.Item label={null}>
-          <Button type="primary" htmlType="submit">
-            Submit
-          </Button>
-          <Button style={{ marginLeft: 8 }} onClick={handleQuery}>
-            查询
-          </Button>
-        </Form.Item>
-      </Form>
-      <Table
-        dataSource={data}
-        columns={columns}
-        rowKey="id"
-        loading={loading}
-        pagination={{ pageSize: 5 }}
-        style={{ marginTop: 24 }}
-      />
-    </>
+              <Form.Item>
+                <Button type="primary" htmlType="submit">
+                  Submit
+                </Button>
+              </Form.Item>
+            </Form>
+            {/* <Form.Item> */}
+            <Button style={{ marginLeft: 8 }} onClick={handleQuery}>
+              查询
+            </Button>
+            {/* </Form.Item> */}
+            <Table
+              dataSource={data}
+              columns={columns}
+              rowKey="id"
+              loading={loading}
+              pagination={{ pageSize: 5 }}
+              style={{ marginTop: 24 }}
+            />
+          </div>
+        </Content>
+        <Footer style={{ textAlign: "center" }}>
+          Ant Design ©{new Date().getFullYear()} Created by Ant UED
+        </Footer>
+      </Layout>
+    </Layout>
   );
 };
 
