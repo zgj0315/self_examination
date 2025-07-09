@@ -109,7 +109,7 @@ const App: React.FC = () => {
       dataIndex: "created_at",
       key: "created_at",
       render: (timestamp: number) =>
-        timestamp ? new Date(timestamp).toLocaleString() : "--",
+        timestamp ? dayjs(timestamp).format("YYYY-MM-DD HH:mm:ss") : "--",
     },
     {
       title: "修改时间",
