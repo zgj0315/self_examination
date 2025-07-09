@@ -46,6 +46,12 @@ type Article = {
   content: string;
 };
 
+type Page = {
+  size: number;
+  total_elements: number;
+  total_pages: number;
+};
+
 const App: React.FC = () => {
   const [form] = Form.useForm();
   const [create_open, setCreateOpen] = useState(false);
@@ -83,14 +89,24 @@ const App: React.FC = () => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  const [data, setData] = useState<Article[]>([]);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [current, setCurrent] = useState(1);
+  const [page_size, setPageSize] = useState(5);
+  const [page, setPage] = useState<Page>();
   const [loading, setLoading] = useState(false);
 
-  const handleQuery = async () => {
+  const handleQuery = async (page = current, size = page_size) => {
+    console.log("page: ", page);
+    console.log("size: ", size);
     setLoading(true);
     try {
-      const response = await axios.get("/api/articles?size=20&page=0");
-      setData(response.data._embedded?.article);
+      const response = await axios.get(
+        `/api/articles?size=${size}&page=${page - 1}`
+      );
+      setArticles(response.data._embedded?.article);
+      setPage(response.data.page);
+      setCurrent(page);
+      setPageSize(size);
       message.success("查询成功");
     } catch (e) {
       console.error("查询失败: ", e);
@@ -294,15 +310,20 @@ const App: React.FC = () => {
                 <Input.TextArea rows={4} />
               </Form.Item>
             </Modal>
-            <Button style={{ marginLeft: 8 }} onClick={handleQuery}>
+            <Button style={{ marginLeft: 8 }} onClick={() => handleQuery()}>
               查询
             </Button>
             <Table
-              dataSource={data}
+              dataSource={articles}
               columns={columns}
               rowKey="id"
               loading={loading}
-              pagination={{ pageSize: 5 }}
+              pagination={{
+                current: current,
+                pageSize: page_size,
+                total: page?.total_elements,
+                onChange: (page, size) => handleQuery(page, size),
+              }}
               style={{ marginTop: 24 }}
             />
           </div>
