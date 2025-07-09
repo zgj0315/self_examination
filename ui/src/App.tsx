@@ -17,6 +17,7 @@ import {
   UserOutlined,
   VideoCameraOutlined,
 } from "@ant-design/icons";
+import dayjs from "dayjs";
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -68,7 +69,7 @@ const App: React.FC = () => {
     setLoading(true);
     try {
       const response = await axios.get("/api/articles?size=20&page=0");
-      setData(response.data._embedded?.article); // 假设返回数组，如 [{ id: 1, title: 't', content: 'c' }]
+      setData(response.data._embedded?.article);
       message.success("查询成功");
     } catch (e) {
       console.error("查询失败: ", e);
@@ -81,7 +82,7 @@ const App: React.FC = () => {
     try {
       await axios.delete(`/api/articles/${id}`);
       message.success("删除成功");
-      handleQuery(); // 删除后刷新列表
+      handleQuery();
     } catch (error) {
       console.error("删除失败:", error);
       message.error("删除失败");
@@ -102,6 +103,20 @@ const App: React.FC = () => {
       title: "内容",
       dataIndex: "content",
       key: "content",
+    },
+    {
+      title: "创建时间",
+      dataIndex: "created_at",
+      key: "created_at",
+      render: (timestamp: number) =>
+        timestamp ? new Date(timestamp).toLocaleString() : "--",
+    },
+    {
+      title: "修改时间",
+      dataIndex: "updated_at",
+      key: "updated_at",
+      render: (timestamp: number) =>
+        timestamp ? dayjs(timestamp).format("YYYY-MM-DD HH:mm:ss") : "--",
     },
     {
       title: "操作",
