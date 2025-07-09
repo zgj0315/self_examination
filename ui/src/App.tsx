@@ -51,10 +51,10 @@ const App: React.FC = () => {
   const [create_open, setCreateOpen] = useState(false);
   const [update_open, setUpdateOpen] = useState(false);
 
-  const onCreate = (values: FieldType) => {
+  const onCreate = async (values: FieldType) => {
     console.log("Received values of form: ", values);
     try {
-      const response = axios.post("/api/articles", values);
+      const response = await axios.post("/api/articles", values);
       console.log("create success, response: ", response);
       message.success("create success");
     } catch (e) {
@@ -65,10 +65,10 @@ const App: React.FC = () => {
     handleQuery();
   };
 
-  const onUpdate = (values: UpdateField) => {
+  const onUpdate = async (values: UpdateField) => {
     console.log("Received values of form: ", values);
     try {
-      const response = axios.patch(`/api/articles/${values.id}`, values);
+      const response = await axios.patch(`/api/articles/${values.id}`, values);
       console.log("update success, response: ", response);
       message.success("update success");
     } catch (e) {
@@ -243,7 +243,7 @@ const App: React.FC = () => {
                   },
                 ]}
               >
-                <Input type="textarea" />
+                <Input.TextArea rows={4} />
               </Form.Item>
             </Modal>
             <Modal
@@ -291,7 +291,7 @@ const App: React.FC = () => {
                   },
                 ]}
               >
-                <Input type="textarea" />
+                <Input.TextArea rows={4} />
               </Form.Item>
             </Modal>
             <Button style={{ marginLeft: 8 }} onClick={handleQuery}>
