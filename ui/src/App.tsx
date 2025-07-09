@@ -34,6 +34,12 @@ type FieldType = {
   content?: string;
 };
 
+type UpdateField = {
+  id?: number;
+  title?: string;
+  content?: string;
+};
+
 type Article = {
   id: number;
   title: string;
@@ -42,7 +48,8 @@ type Article = {
 
 const App: React.FC = () => {
   const [form] = Form.useForm();
-  const [open, setOpen] = useState(false);
+  const [create_open, setCreateOpen] = useState(false);
+  const [update_open, setUpdateOpen] = useState(false);
 
   const onCreate = (values: FieldType) => {
     console.log("Received values of form: ", values);
@@ -54,7 +61,21 @@ const App: React.FC = () => {
       console.error("create error: ", e);
       message.error("create error");
     }
-    setOpen(false);
+    setCreateOpen(false);
+    handleQuery();
+  };
+
+  const onUpdate = (values: UpdateField) => {
+    console.log("Received values of form: ", values);
+    try {
+      const response = axios.patch(`/api/articles/${values.id}`, values);
+      console.log("update success, response: ", response);
+      message.success("update success");
+    } catch (e) {
+      console.error("update error: ", e);
+      message.error("update error");
+    }
+    setUpdateOpen(false);
     handleQuery();
   };
 
@@ -77,6 +98,11 @@ const App: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+  const handleUpdate = (record: Article) => {
+    // setEditingArticle(record);
+    form.setFieldsValue(record);
+    setUpdateOpen(true);
   };
   const handleDelete = async (id: number) => {
     try {
@@ -122,16 +148,21 @@ const App: React.FC = () => {
       title: "操作",
       key: "action",
       render: (_: unknown, record: Article) => (
-        <Popconfirm
-          title="确定要删除这条记录吗？"
-          onConfirm={() => handleDelete(record.id)}
-          okText="确定"
-          cancelText="取消"
-        >
-          <Button danger type="link">
-            删除
+        <>
+          <Button type="link" onClick={() => handleUpdate(record)}>
+            编辑
           </Button>
-        </Popconfirm>
+          <Popconfirm
+            title="确定要删除这条记录吗？"
+            onConfirm={() => handleDelete(record.id)}
+            okText="确定"
+            cancelText="取消"
+          >
+            <Button danger type="link">
+              删除
+            </Button>
+          </Popconfirm>
+        </>
       ),
     },
   ];
@@ -167,16 +198,16 @@ const App: React.FC = () => {
               borderRadius: borderRadiusLG,
             }}
           >
-            <Button type="primary" onClick={() => setOpen(true)}>
+            <Button type="primary" onClick={() => setCreateOpen(true)}>
               New Article
             </Button>
             <Modal
-              open={open}
+              open={create_open}
               title="Create a new article"
               okText="Create"
               cancelText="Cancel"
               okButtonProps={{ autoFocus: true, htmlType: "submit" }}
-              onCancel={() => setOpen(false)}
+              onCancel={() => setCreateOpen(false)}
               destroyOnHidden
               modalRender={(dom) => (
                 <Form
@@ -215,11 +246,57 @@ const App: React.FC = () => {
                 <Input type="textarea" />
               </Form.Item>
             </Modal>
-            {/* <Form.Item> */}
+            <Modal
+              open={update_open}
+              title="Update a new article"
+              okText="Update"
+              cancelText="Cancel"
+              okButtonProps={{ autoFocus: true, htmlType: "submit" }}
+              onCancel={() => setUpdateOpen(false)}
+              destroyOnHidden
+              modalRender={(dom) => (
+                <Form
+                  layout="vertical"
+                  form={form}
+                  name="form_in_modal"
+                  clearOnDestroy
+                  onFinish={(values) => onUpdate(values)}
+                >
+                  {dom}
+                </Form>
+              )}
+            >
+              <Form.Item name="id" label="ID" hidden>
+                <Input />
+              </Form.Item>
+              <Form.Item
+                name="title"
+                label="Title"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input the title of article!",
+                  },
+                ]}
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item
+                name="content"
+                label="Content"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input the Content of article!",
+                  },
+                ]}
+              >
+                <Input type="textarea" />
+              </Form.Item>
+            </Modal>
             <Button style={{ marginLeft: 8 }} onClick={handleQuery}>
               查询
             </Button>
-            {/* </Form.Item> */}
             <Table
               dataSource={data}
               columns={columns}
