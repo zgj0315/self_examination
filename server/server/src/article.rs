@@ -104,8 +104,8 @@ async fn query(
     for tbl_article in tbl_articles {
         articles.push(QueryOutputDto {
             id: tbl_article.id,
-            title: tbl_article.title,
-            content: tbl_article.content,
+            title: tbl_article.title.chars().take(10).collect(),
+            content: tbl_article.content.chars().take(10).collect(),
             created_at: tbl_article.created_at.and_utc().timestamp_millis(),
             updated_at: tbl_article.updated_at.and_utc().timestamp_millis(),
         });
