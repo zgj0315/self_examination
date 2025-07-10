@@ -7,7 +7,6 @@ use std::{
 use axum::Router;
 use migration::{Migrator, MigratorTrait};
 use sea_orm::Database;
-use server::{AppState, article};
 use tower_http::services::ServeDir;
 
 #[tokio::main]
@@ -32,10 +31,11 @@ async fn main() -> anyhow::Result<()> {
 
     Migrator::up(&db_conn, None).await?;
 
-    let app_state = AppState { db_conn };
+    let app_state = server::AppState { db_conn };
     let app = Router::new()
         .fallback_service(ServeDir::new("../../ui/dist"))
-        .nest("/api", article::routers(app_state));
+        .nest("/api", server::article::routers(app_state.clone()))
+        .nest("/api", server::log::routers(app_state));
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;
     log::info!("listening on {}", listener.local_addr()?);
 
