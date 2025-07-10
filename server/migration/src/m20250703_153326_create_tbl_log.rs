@@ -13,6 +13,7 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(pk_auto(TblLog::Id))
                     .col(text(TblLog::Content))
+                    .col(date_time(TblLog::CreatedAt).default(Expr::current_timestamp()))
                     .to_owned(),
             )
             .await
@@ -30,4 +31,5 @@ enum TblLog {
     Table,
     Id,
     Content,
+    CreatedAt,
 }

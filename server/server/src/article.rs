@@ -6,7 +6,7 @@ use axum::{
     response::IntoResponse,
     routing::{get, patch},
 };
-use entity::tbl_article;
+use entity::{tbl_article, tbl_log};
 use sea_orm::{
     ActiveValue::Set, ColumnTrait, EntityTrait, IntoActiveModel, PaginatorTrait, QueryFilter,
     QueryOrder,
@@ -42,6 +42,16 @@ async fn query(
     app_state: State<AppState>,
     Query(query_input_dto): Query<QueryInputDto>,
 ) -> impl IntoResponse {
+    let tbl_log_am = tbl_log::ActiveModel {
+        content: Set(format!("query by {:?}", query_input_dto)),
+        ..Default::default()
+    };
+    if let Err(e) = tbl_log::Entity::insert(tbl_log_am)
+        .exec(&app_state.db_conn)
+        .await
+    {
+        log::error!("tbl_log insert err: {}", e);
+    }
     let mut select = tbl_article::Entity::find();
     if let Some(title) = query_input_dto.title {
         if !title.is_empty() {
@@ -137,6 +147,16 @@ async fn create(
     app_state: State<AppState>,
     Json(create_input_dto): Json<CreateInputDto>,
 ) -> impl IntoResponse {
+    let tbl_log_am = tbl_log::ActiveModel {
+        content: Set(format!("create by {:?}", create_input_dto)),
+        ..Default::default()
+    };
+    if let Err(e) = tbl_log::Entity::insert(tbl_log_am)
+        .exec(&app_state.db_conn)
+        .await
+    {
+        log::error!("tbl_log insert err: {}", e);
+    }
     let tbl_article_am = tbl_article::ActiveModel {
         title: Set(create_input_dto.title),
         content: Set(create_input_dto.content),
@@ -185,6 +205,16 @@ async fn update(
     State(app_state): State<AppState>,
     Json(update_input_dto): Json<UpdateInputDto>,
 ) -> impl IntoResponse {
+    let tbl_log_am = tbl_log::ActiveModel {
+        content: Set(format!("update {} by {:?}", id, update_input_dto)),
+        ..Default::default()
+    };
+    if let Err(e) = tbl_log::Entity::insert(tbl_log_am)
+        .exec(&app_state.db_conn)
+        .await
+    {
+        log::error!("tbl_log insert err: {}", e);
+    }
     let tbl_article = match tbl_article::Entity::find_by_id(id)
         .one(&app_state.db_conn)
         .await
@@ -258,6 +288,16 @@ async fn update(
 }
 
 async fn delete(Path(id): Path<i32>, State(app_state): State<AppState>) -> impl IntoResponse {
+    let tbl_log_am = tbl_log::ActiveModel {
+        content: Set(format!("delete by {}", id)),
+        ..Default::default()
+    };
+    if let Err(e) = tbl_log::Entity::insert(tbl_log_am)
+        .exec(&app_state.db_conn)
+        .await
+    {
+        log::error!("tbl_log insert err: {}", e);
+    }
     match tbl_article::Entity::delete_by_id(id)
         .exec(&app_state.db_conn)
         .await
