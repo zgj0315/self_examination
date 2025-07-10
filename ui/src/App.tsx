@@ -317,9 +317,6 @@ const App: React.FC = () => {
                 <Input.TextArea rows={4} />
               </Form.Item>
             </Modal>
-            {/* <Button style={{ marginLeft: 8 }} onClick={() => handleQuery()}>
-              查询
-            </Button> */}
             <Form
               layout="inline"
               onFinish={(values) => handleQuery(1, page_size, values)}
