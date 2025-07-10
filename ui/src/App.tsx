@@ -95,14 +95,21 @@ const App: React.FC = () => {
   const [page, setPage] = useState<Page>();
   const [loading, setLoading] = useState(false);
 
-  const handleQuery = async (page = current, size = page_size) => {
+  const handleQuery = async (
+    page = current,
+    size = page_size,
+    filters?: { title?: string; content?: string }
+  ) => {
     console.log("page: ", page);
     console.log("size: ", size);
+    const params = new URLSearchParams();
+    params.append("size", size.toString());
+    params.append("page", (page - 1).toString());
+    if (filters?.title) params.append("title", filters.title);
+    if (filters?.content) params.append("content", filters.content);
     setLoading(true);
     try {
-      const response = await axios.get(
-        `/api/articles?size=${size}&page=${page - 1}`
-      );
+      const response = await axios.get(`/api/articles?${params.toString()}`);
       setArticles(response.data._embedded?.article);
       setPage(response.data.page);
       setCurrent(page);
@@ -209,7 +216,7 @@ const App: React.FC = () => {
             style={{
               padding: 24,
               minHeight: 360,
-              minWidth: 600,
+              minWidth: 800,
               background: colorBgContainer,
               borderRadius: borderRadiusLG,
             }}
@@ -310,9 +317,26 @@ const App: React.FC = () => {
                 <Input.TextArea rows={4} />
               </Form.Item>
             </Modal>
-            <Button style={{ marginLeft: 8 }} onClick={() => handleQuery()}>
+            {/* <Button style={{ marginLeft: 8 }} onClick={() => handleQuery()}>
               查询
-            </Button>
+            </Button> */}
+            <Form
+              layout="inline"
+              onFinish={(values) => handleQuery(1, page_size, values)}
+              style={{ marginTop: 16 }}
+            >
+              <Form.Item name="title" label="标题">
+                <Input placeholder="请输入标题关键字" />
+              </Form.Item>
+              <Form.Item name="content" label="内容">
+                <Input placeholder="请输入内容关键字" />
+              </Form.Item>
+              <Form.Item>
+                <Button type="primary" htmlType="submit">
+                  查询
+                </Button>
+              </Form.Item>
+            </Form>
             <Table
               dataSource={articles}
               columns={columns}
