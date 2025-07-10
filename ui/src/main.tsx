@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Article from "./Article.tsx";
-import Log from "./Log.tsx";
+import ArticlePage from "./ArticlePage.tsx";
+import LogPage from "./LogPage.tsx";
 import AppLayout from "./AppLayout.tsx";
 
 createRoot(document.getElementById("root")!).render(
@@ -9,8 +9,8 @@ createRoot(document.getElementById("root")!).render(
     <Routes>
       <Route path="/" element={<AppLayout />}>
         <Route index element={<Navigate to="/articles" replace />} />
-        <Route path="articles" element={<Article />} />
-        <Route path="logs" element={<Log />} />
+        <Route path="articles" element={<ArticlePage />} />
+        <Route path="logs" element={<LogPage />} />
       </Route>
     </Routes>
   </BrowserRouter>
