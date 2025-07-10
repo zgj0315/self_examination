@@ -14,7 +14,7 @@
 ```
 # 启动后台工程
 cd server/server
-cargo run
+cargo watch -x run
 
 # 启动前台工程
 cd ui
