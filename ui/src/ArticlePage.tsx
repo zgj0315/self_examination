@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Form, Input, message, Table, Popconfirm, Modal } from "antd";
 import axios from "axios";
 
@@ -159,6 +159,11 @@ const App: React.FC = () => {
       ),
     },
   ];
+
+  useEffect(() => {
+    handleQuery();
+  }, []);
+
   return (
     <>
       <Button type="primary" onClick={() => setCreateOpen(true)}>

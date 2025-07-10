@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Form, Input, message, Table } from "antd";
 import axios from "axios";
 
@@ -74,6 +74,9 @@ const App: React.FC = () => {
         timestamp ? dayjs(timestamp).format("YYYY-MM-DD HH:mm:ss") : "--",
     },
   ];
+  useEffect(() => {
+    handleQuery();
+  }, []);
   return (
     <>
       <Form
