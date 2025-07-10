@@ -100,8 +100,8 @@ const App: React.FC = () => {
     size = page_size,
     filters?: { title?: string; content?: string }
   ) => {
-    console.log("page: ", page);
-    console.log("size: ", size);
+    console.log("handleQuery page: ", page);
+    console.log("handleQuery size: ", size);
     const params = new URLSearchParams();
     params.append("size", size.toString());
     params.append("page", (page - 1).toString());
@@ -195,7 +195,7 @@ const App: React.FC = () => {
         breakpoint="lg"
         collapsedWidth="0"
         onBreakpoint={(broken) => {
-          console.log(broken);
+          console.log("onBreakpoint broken: ", broken);
         }}
         onCollapse={(collapsed, type) => {
           console.log(collapsed, type);
