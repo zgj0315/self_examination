@@ -98,9 +98,6 @@ const App: React.FC = () => {
 
   return (
     <>
-      <Upload {...props}>
-        <Button icon={<UploadOutlined />}>Click to Upload</Button>
-      </Upload>
       <Form
         layout="inline"
         onFinish={(values) => handleQuery(1, page_size, values)}
@@ -113,6 +110,11 @@ const App: React.FC = () => {
           <Button type="primary" htmlType="submit">
             查询
           </Button>
+        </Form.Item>
+        <Form.Item>
+          <Upload {...props}>
+            <Button icon={<UploadOutlined />}>上传文件</Button>
+          </Upload>
         </Form.Item>
       </Form>
       <Table
