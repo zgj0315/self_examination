@@ -1,5 +1,9 @@
 import React from "react";
-import { UserOutlined, VideoCameraOutlined } from "@ant-design/icons";
+import {
+  UploadOutlined,
+  UserOutlined,
+  VideoCameraOutlined,
+} from "@ant-design/icons";
 import { Layout, Menu, theme } from "antd";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 
@@ -42,6 +46,11 @@ const App: React.FC = () => {
               key: "/logs",
               icon: <VideoCameraOutlined />,
               label: "操作日志",
+            },
+            {
+              key: "/files",
+              icon: <UploadOutlined />,
+              label: "文件管理",
             },
           ]}
         />
