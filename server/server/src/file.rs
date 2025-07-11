@@ -215,26 +215,26 @@ async fn download(Path(id): Path<i32>, State(app_state): State<AppState>) -> imp
                     HeaderValue::from_str(&format!("attachment; filename=\"{}\"", tbl_file.name))
                         .unwrap_or_else(|_| HeaderValue::from_static("attachment")),
                 );
-                return (StatusCode::OK, headers, tbl_file.content).into_response();
+                (StatusCode::OK, headers, tbl_file.content).into_response()
             }
             None => {
                 log::warn!("not find file_id: {}", id);
-                return (
+                (
                     StatusCode::BAD_REQUEST,
                     [("code", "400"), ("msg", "not find file id")],
                     Json(json!({})),
                 )
-                    .into_response();
+                    .into_response()
             }
         },
         Err(e) => {
             log::error!("find file_id: {}, err: {}", id, e);
-            return (
+            (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 [("code", "500"), ("msg", "find file err")],
                 Json(json!({})),
             )
-                .into_response();
+                .into_response()
         }
     }
 }
