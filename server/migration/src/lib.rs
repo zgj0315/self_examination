@@ -2,6 +2,7 @@ pub use sea_orm_migration::prelude::*;
 
 mod m20250703_151630_create_tbl_article;
 mod m20250703_153326_create_tbl_log;
+mod m20250711_022548_create_tbl_file;
 
 pub struct Migrator;
 
@@ -11,6 +12,7 @@ impl MigratorTrait for Migrator {
         vec![
             Box::new(m20250703_151630_create_tbl_article::Migration),
             Box::new(m20250703_153326_create_tbl_log::Migration),
+            Box::new(m20250711_022548_create_tbl_file::Migration),
         ]
     }
 }

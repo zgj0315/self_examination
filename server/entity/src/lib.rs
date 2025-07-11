@@ -3,4 +3,5 @@
 pub mod prelude;
 
 pub mod tbl_article;
+pub mod tbl_file;
 pub mod tbl_log;

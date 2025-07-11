@@ -5,7 +5,7 @@ version = "0.1.0"
 
 [dependencies]
 anyhow = "1.0"
-axum = "0.8"
+axum = {version = "0.8", features = ["multipart"]}
 chrono = "0.4"
 entity = {path = "../entity"}
 log = "0.4"
