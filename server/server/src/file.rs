@@ -1,19 +1,23 @@
 use axum::{
     Json, Router,
-    extract::{DefaultBodyLimit, Multipart, State},
+    extract::{DefaultBodyLimit, Multipart, Query, State},
     http::StatusCode,
     response::IntoResponse,
     routing::post,
 };
 use entity::tbl_file;
-use sea_orm::{ActiveValue::Set, EntityTrait};
+use sea_orm::{
+    ActiveValue::Set, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
+};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
+use validator::Validate;
 
 use crate::AppState;
 
 pub fn routers(state: AppState) -> Router {
     Router::new()
-        .route("/files", post(upload))
+        .route("/files", post(upload).get(query))
         .layer(DefaultBodyLimit::max(1024 * 1024 * 1024 * 4))
         .with_state(state)
 }
@@ -34,9 +38,9 @@ async fn upload(app_state: State<AppState>, mut multipart: Multipart) -> impl In
         if let Some(name) = field.name() {
             log::info!("name: {name}");
         }
-        if let Some(file_name) = field.file_name() {
-            log::info!("file_name: {file_name}");
-        }
+        let file_name = field.file_name().unwrap_or_default().to_string();
+        log::info!("file_name: {file_name}");
+
         if let Some(content_type) = field.content_type() {
             log::info!("content_type: {content_type}");
             let content_bytes = if content_type.eq("application/json") {
@@ -65,6 +69,7 @@ async fn upload(app_state: State<AppState>, mut multipart: Multipart) -> impl In
                 }
             };
             let tbl_file_am = tbl_file::ActiveModel {
+                name: Set(file_name),
                 content: Set(content_bytes),
                 ..Default::default()
             };
@@ -93,5 +98,101 @@ async fn upload(app_state: State<AppState>, mut multipart: Multipart) -> impl In
         Json(json!({
             "file_ids":file_ids
         })),
+    )
+}
+
+#[derive(Deserialize, Debug, Validate)]
+struct QueryInputDto {
+    name: Option<String>,
+    size: u64,
+    page: u64,
+}
+
+#[derive(Serialize, Debug)]
+struct QueryOutputDto {
+    id: i32,
+    name: String,
+    created_at: i64,
+}
+async fn query(
+    app_state: State<AppState>,
+    Query(query_input_dto): Query<QueryInputDto>,
+) -> impl IntoResponse {
+    let mut select = tbl_file::Entity::find();
+
+    if let Some(name) = query_input_dto.name {
+        if !name.is_empty() {
+            let like_pattern = format!("%{name}%");
+            select = select.filter(tbl_file::Column::Name.like(like_pattern));
+        }
+    }
+    let paginator = select
+        .order_by_desc(tbl_file::Column::CreatedAt)
+        .paginate(&app_state.db_conn, query_input_dto.size);
+    let num_pages = match paginator.num_pages().await {
+        Ok(v) => v,
+        Err(e) => {
+            log::error!("num_pages err: {}", e);
+            return (
+                StatusCode::OK,
+                [("code", "500"), ("msg", "pg connection err")],
+                Json(json!( {
+                        "code": StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
+                        "msg": "pg connection err".to_string(),
+                })),
+            );
+        }
+    };
+    let num_items = match paginator.num_items().await {
+        Ok(v) => v,
+        Err(e) => {
+            log::error!("num_items err: {}", e);
+            return (
+                StatusCode::OK,
+                [("code", "500"), ("msg", "pg connection err")],
+                Json(json!( {
+                        "code": StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
+                        "msg": "pg connection err".to_string(),
+                })),
+            );
+        }
+    };
+    let tbl_files = match paginator.fetch_page(query_input_dto.page).await {
+        Ok(v) => v,
+        Err(e) => {
+            log::error!("fetch_page err: {}", e);
+            return (
+                StatusCode::OK,
+                [("code", "200"), ("msg", "ok")],
+                Json(json!( {
+                        "code": StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
+                        "msg": "pg content err".to_string(),
+                })),
+            );
+        }
+    };
+    let mut files = Vec::new();
+    for tbl_file in tbl_files {
+        files.push(QueryOutputDto {
+            id: tbl_file.id,
+            name: tbl_file.name,
+            created_at: tbl_file.created_at.and_utc().timestamp_millis(),
+        });
+    }
+    (
+        StatusCode::OK,
+        [("code", "200"), ("msg", "ok")],
+        Json(json!(
+            {
+            "page":{
+              "size":query_input_dto.size,
+              "total_elements":num_items,
+              "total_pages":num_pages
+            },
+            "_embedded":{
+                "file":files
+            }
+           }
+        )),
     )
 }

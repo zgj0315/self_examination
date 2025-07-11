@@ -12,6 +12,7 @@ impl MigrationTrait for Migration {
                     .table(TblFile::Table)
                     .if_not_exists()
                     .col(pk_auto(TblFile::Id))
+                    .col(string(TblFile::Name))
                     .col(binary(TblFile::Content))
                     .col(date_time(TblFile::CreatedAt).default(Expr::current_timestamp()))
                     .to_owned(),
@@ -30,6 +31,7 @@ impl MigrationTrait for Migration {
 enum TblFile {
     Table,
     Id,
+    Name,
     Content,
     CreatedAt,
 }
