@@ -166,9 +166,6 @@ const App: React.FC = () => {
 
   return (
     <>
-      <Button type="primary" onClick={() => setCreateOpen(true)}>
-        New Article
-      </Button>
       <Modal
         open={create_open}
         title="Create a new article"
@@ -278,7 +275,13 @@ const App: React.FC = () => {
             查询
           </Button>
         </Form.Item>
+        <Form.Item>
+          <Button type="primary" onClick={() => setCreateOpen(true)}>
+            新增
+          </Button>
+        </Form.Item>
       </Form>
+
       <Table
         dataSource={articles}
         columns={columns}
