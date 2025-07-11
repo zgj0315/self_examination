@@ -38,7 +38,7 @@ async fn main() -> anyhow::Result<()> {
         .nest("/api", server::article::routers(app_state.clone()))
         .nest("/api", server::log::routers(app_state.clone()))
         .nest("/api", server::file::routers(app_state))
-        .route_layer(from_extractor::<RequireAuth>());
+        .layer(from_extractor::<RequireAuth>());
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;
     log::info!("listening on {}", listener.local_addr()?);
 
