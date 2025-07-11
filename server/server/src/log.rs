@@ -91,7 +91,7 @@ async fn query(
     for tbl_article in tbl_articles {
         articles.push(QueryOutputDto {
             id: tbl_article.id,
-            content: tbl_article.content.chars().take(10).collect(),
+            content: tbl_article.content.chars().take(100).collect(),
             created_at: tbl_article.created_at.and_utc().timestamp_millis(),
         });
     }

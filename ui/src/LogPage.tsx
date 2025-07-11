@@ -57,11 +57,6 @@ const App: React.FC = () => {
       key: "id",
     },
     {
-      title: "标题",
-      dataIndex: "title",
-      key: "title",
-    },
-    {
       title: "内容",
       dataIndex: "content",
       key: "content",
