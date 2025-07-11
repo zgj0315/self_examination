@@ -1,9 +1,9 @@
 use axum::{
     Json, Router,
-    extract::{DefaultBodyLimit, Multipart, Query, State},
-    http::StatusCode,
+    extract::{DefaultBodyLimit, Multipart, Path, Query, State},
+    http::{HeaderMap, HeaderValue, StatusCode, header},
     response::IntoResponse,
-    routing::post,
+    routing::{get, post},
 };
 use entity::tbl_file;
 use sea_orm::{
@@ -18,6 +18,7 @@ use crate::AppState;
 pub fn routers(state: AppState) -> Router {
     Router::new()
         .route("/files", post(upload).get(query))
+        .route("/files/{id}", get(download))
         .layer(DefaultBodyLimit::max(1024 * 1024 * 1024 * 4))
         .with_state(state)
 }
@@ -195,4 +196,45 @@ async fn query(
            }
         )),
     )
+}
+
+async fn download(Path(id): Path<i32>, State(app_state): State<AppState>) -> impl IntoResponse {
+    match tbl_file::Entity::find_by_id(id)
+        .one(&app_state.db_conn)
+        .await
+    {
+        Ok(tbl_file_op) => match tbl_file_op {
+            Some(tbl_file) => {
+                let mut headers = HeaderMap::new();
+                headers.insert(
+                    header::CONTENT_TYPE,
+                    HeaderValue::from_static("application/octet-stream"),
+                );
+                headers.insert(
+                    header::CONTENT_DISPOSITION,
+                    HeaderValue::from_str(&format!("attachment; filename=\"{}\"", tbl_file.name))
+                        .unwrap_or_else(|_| HeaderValue::from_static("attachment")),
+                );
+                return (StatusCode::OK, headers, tbl_file.content).into_response();
+            }
+            None => {
+                log::warn!("not find file_id: {}", id);
+                return (
+                    StatusCode::BAD_REQUEST,
+                    [("code", "400"), ("msg", "not find file id")],
+                    Json(json!({})),
+                )
+                    .into_response();
+            }
+        },
+        Err(e) => {
+            log::error!("find file_id: {}, err: {}", id, e);
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                [("code", "500"), ("msg", "find file err")],
+                Json(json!({})),
+            )
+                .into_response();
+        }
+    }
 }

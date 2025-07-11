@@ -5,6 +5,12 @@ import { Button, message, Upload, Form, Input, Table } from "antd";
 import axios from "axios";
 import dayjs from "dayjs";
 
+type FileType = {
+  id: number;
+  name: string;
+  created_at: number;
+};
+
 type Page = {
   size: number;
   total_elements: number;
@@ -39,7 +45,7 @@ const props: UploadProps = {
 };
 
 const App: React.FC = () => {
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<FileType[]>([]);
   const [current, setCurrent] = useState(1);
   const [page_size, setPageSize] = useState(5);
   const [page, setPage] = useState<Page>();
@@ -71,7 +77,37 @@ const App: React.FC = () => {
       setLoading(false);
     }
   };
+  const handleDownload = async (id: number) => {
+    try {
+      const response = await axios.get(`/api/files/${id}`, {
+        responseType: "blob", // 关键点
+      });
 
+      const blob = new Blob([response.data]);
+      const contentDisposition = response.headers["content-disposition"];
+      let fileName = "downloaded_file";
+
+      // 从Content-Disposition中获取文件名
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?(.+?)"?$/);
+        if (match?.[1]) {
+          fileName = decodeURIComponent(match[1]);
+        }
+      }
+
+      // 创建临时下载链接
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      console.error("文件下载失败:", error);
+      message.error("文件下载失败，请重试");
+    }
+  };
   const columns = [
     {
       title: "ID",
@@ -89,6 +125,15 @@ const App: React.FC = () => {
       key: "created_at",
       render: (timestamp: number) =>
         timestamp ? dayjs(timestamp).format("YYYY-MM-DD HH:mm:ss") : "--",
+    },
+    {
+      title: "操作",
+      key: "action",
+      render: (_: unknown, record: FileType) => (
+        <Button type="link" onClick={() => handleDownload(record.id)}>
+          下载
+        </Button>
+      ),
     },
   ];
 
