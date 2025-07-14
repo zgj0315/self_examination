@@ -4,6 +4,7 @@ import ArticlePage from "./ArticlePage.tsx";
 import LogPage from "./LogPage.tsx";
 import AppLayout from "./AppLayout.tsx";
 import FilePage from "./FilePage.tsx";
+import PdfPage from "./PdfPage.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
@@ -13,6 +14,7 @@ createRoot(document.getElementById("root")!).render(
         <Route path="articles" element={<ArticlePage />} />
         <Route path="logs" element={<LogPage />} />
         <Route path="files" element={<FilePage />} />
+        <Route path="pdfs" element={<PdfPage />} />
       </Route>
     </Routes>
   </BrowserRouter>
