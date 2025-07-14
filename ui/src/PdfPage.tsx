@@ -32,7 +32,7 @@ const App: React.FC = () => {
   };
   return (
     <div>
-      <Document file="sample.pdf" onLoadSuccess={onDocumentLoadSuccess}>
+      <Document file="/api/files/4" onLoadSuccess={onDocumentLoadSuccess}>
         <Page pageNumber={pageNumber} />
       </Document>
       <p>
