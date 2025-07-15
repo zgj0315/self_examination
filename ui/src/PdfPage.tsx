@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { pdfjs, Document, Page } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import type { PDFDocumentProxy } from "pdfjs-dist";
+import restful_api from "./RESTfulApi.tsx";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -14,8 +15,7 @@ const App: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [numPages, setNumPages] = useState<number>();
   const [pageNumber, setPageNumber] = useState<number>(1);
-
-  const token = localStorage.getItem("token");
+  const [pdfData, setPdfData] = useState<Blob | null>(null);
 
   function onDocumentLoadSuccess({
     numPages: nextNumPages,
@@ -32,17 +32,22 @@ const App: React.FC = () => {
       setPageNumber((prev) => Math.min(prev + 1, numPages));
     }
   };
+  useEffect(() => {
+    const fetchPdf = async () => {
+      try {
+        const response = await restful_api.get(`/api/files/${id}`, {
+          responseType: "blob",
+        });
+        setPdfData(response.data);
+      } catch (error) {
+        console.error("Failed to fetch PDF:", error);
+      }
+    };
+    fetchPdf();
+  }, [id]);
   return (
     <div>
-      <Document
-        file={{
-          url: `/api/files/${id}`,
-          httpHeaders: {
-            Authorization: `Bearer ${token}`,
-          },
-        }}
-        onLoadSuccess={onDocumentLoadSuccess}
-      >
+      <Document file={pdfData} onLoadSuccess={onDocumentLoadSuccess}>
         <Page pageNumber={pageNumber} />
       </Document>
       <p>
