@@ -132,7 +132,7 @@ where
 
         if WHITE_API_SET.contains(&(parts.method.clone(), parts.uri.path())) {
             log::info!("white list api: {} {}", parts.method, parts.uri.path());
-            return Ok(Self);
+            Ok(Self)
         } else {
             if let Some(authorization) = parts
                 .headers
@@ -140,7 +140,7 @@ where
                 .and_then(|value| value.to_str().ok())
             {
                 if let Some((_, token)) = authorization.split_once(" ") {
-                    match state.sled_db.contains_key(&token) {
+                    match state.sled_db.contains_key(token) {
                         Ok(is_contains) => {
                             if is_contains {
                                 return Ok(Self);
@@ -160,7 +160,7 @@ where
                 parts.method,
                 parts.uri.path()
             );
-            return Err(StatusCode::UNAUTHORIZED);
+            Err(StatusCode::UNAUTHORIZED)
         }
     }
 }
