@@ -130,6 +130,10 @@ where
             }
         }
 
+        if !parts.uri.path().starts_with("/api") {
+            return Ok(Self);
+        }
+
         if WHITE_API_SET.contains(&(parts.method.clone(), parts.uri.path())) {
             log::info!("white list api: {} {}", parts.method, parts.uri.path());
             Ok(Self)
