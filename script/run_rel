@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -o errexit
+set -x
+cd "$(dirname "${0}")"
+cd ../
+
+cd ui
+npm run build
+cd ../server/server
+cargo run -r
