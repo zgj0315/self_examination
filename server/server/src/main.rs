@@ -2,9 +2,10 @@ use std::{
     fs::{self, File},
     net::SocketAddr,
     path::Path,
+    sync::Arc,
 };
 
-use axum::{Router, middleware::from_extractor};
+use axum::{Router, middleware::from_extractor_with_state};
 use migration::{Migrator, MigratorTrait};
 use sea_orm::Database;
 use server::auth::RequireAuth;
@@ -32,16 +33,18 @@ async fn main() -> anyhow::Result<()> {
 
     Migrator::up(&db_conn, None).await?;
 
-    // let sled_db = sled::open("./data/sled_db")?;
+    let sled_db = sled::open("./data/sled_db")?;
 
-    let app_state = server::AppState { db_conn };
+    let app_state = server::AppState { db_conn, sled_db };
     let app = Router::new()
         .fallback_service(ServeDir::new("../../ui/dist"))
         .nest("/api", server::article::routers(app_state.clone()))
         .nest("/api", server::log::routers(app_state.clone()))
         .nest("/api", server::file::routers(app_state.clone()))
-        .nest("/api", server::auth::routers(app_state))
-        .layer(from_extractor::<RequireAuth>());
+        .nest("/api", server::auth::routers(app_state.clone()))
+        .layer(from_extractor_with_state::<RequireAuth, _>(Arc::new(
+            app_state,
+        )));
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;
     log::info!("listening on {}", listener.local_addr()?);
 

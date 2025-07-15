@@ -1,4 +1,4 @@
-use std::{collections::HashSet, net::SocketAddr};
+use std::{collections::HashSet, net::SocketAddr, ops::Deref};
 
 use axum::{
     Json, Router,
@@ -35,17 +35,21 @@ async fn login(
         Ok(tbl_auth_user_op) => match tbl_auth_user_op {
             Some(tbl_auth_user) => {
                 if tbl_auth_user.password.eq(&login_input_dto.password) {
+                    let token = uuid::Uuid::new_v4().to_string();
+                    if let Err(e) = app_state.sled_db.insert(token.clone(), "") {
+                        log::error!("sled db insert err: {}", e);
+                    }
                     (
                         StatusCode::OK,
                         [("code", "200"), ("msg", "ok")],
                         Json(json!({
-                            "token": "123123"
+                            "token": token
                         })),
                     )
                 } else {
                     (
-                        StatusCode::BAD_REQUEST,
-                        [("code", "400"), ("msg", "user not exists")],
+                        StatusCode::UNAUTHORIZED,
+                        [("code", "401"), ("msg", "UNAUTHORIZED")],
                         Json(json!({})),
                     )
                 }
@@ -65,11 +69,15 @@ async fn login(
                         .await
                     {
                         Ok(_) => {
+                            let token = uuid::Uuid::new_v4().to_string();
+                            if let Err(e) = app_state.sled_db.insert(token.clone(), "") {
+                                log::error!("sled db insert err: {}", e);
+                            }
                             return (
                                 StatusCode::OK,
                                 [("code", "200"), ("msg", "ok")],
                                 Json(json!({
-                                    "token": "123123"
+                                    "token": token
                                 })),
                             );
                         }
@@ -85,8 +93,8 @@ async fn login(
                 }
                 log::warn!("user {} not exists", login_input_dto.username);
                 (
-                    StatusCode::BAD_REQUEST,
-                    [("code", "400"), ("msg", "auth failed")],
+                    StatusCode::UNAUTHORIZED,
+                    [("code", "401"), ("msg", "UNAUTHORIZED")],
                     Json(json!({})),
                 )
             }
@@ -108,7 +116,7 @@ pub struct RequireAuth;
 
 impl<S> FromRequestParts<S> for RequireAuth
 where
-    S: Send + Sync,
+    S: Send + Sync + Deref<Target = AppState>,
 {
     type Rejection = StatusCode;
 
@@ -124,6 +132,7 @@ where
 
         if WHITE_API_SET.contains(&(parts.method.clone(), parts.uri.path())) {
             log::info!("white list api: {} {}", parts.method, parts.uri.path());
+            return Ok(Self);
         } else {
             if let Some(authorization) = parts
                 .headers
@@ -131,17 +140,27 @@ where
                 .and_then(|value| value.to_str().ok())
             {
                 if let Some((_, token)) = authorization.split_once(" ") {
-                    log::info!("token: {token}");
+                    match state.sled_db.contains_key(&token) {
+                        Ok(is_contains) => {
+                            if is_contains {
+                                return Ok(Self);
+                            } else {
+                                log::warn!("sled db not contains token: {}", token);
+                                return Err(StatusCode::UNAUTHORIZED);
+                            }
+                        }
+                        Err(e) => {
+                            log::error!("sled db contains key err: {}", e);
+                        }
+                    }
                 }
             }
-
-            log::info!(
-                "not in white list api: {} {}",
+            log::warn!(
+                "not has auth info, api: {} {}",
                 parts.method,
                 parts.uri.path()
             );
+            return Err(StatusCode::UNAUTHORIZED);
         }
-
-        Ok(Self)
     }
 }

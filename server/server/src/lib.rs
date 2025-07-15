@@ -7,4 +7,5 @@ pub mod log;
 #[derive(Clone)]
 pub struct AppState {
     pub db_conn: DatabaseConnection,
+    pub sled_db: sled::Db,
 }
