@@ -121,21 +121,34 @@ where
     type Rejection = StatusCode;
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        match ConnectInfo::<SocketAddr>::from_request_parts(parts, state).await {
+        let src_ip = match ConnectInfo::<SocketAddr>::from_request_parts(parts, state).await {
             Ok(ConnectInfo(socket_addr)) => {
-                log::info!("{} {} {}", socket_addr.ip(), parts.method, parts.uri);
+                // log::info!("{} {} {}", socket_addr.ip(), parts.method, parts.uri);
+                socket_addr.ip().to_string()
             }
             Err(e) => {
                 log::error!("get source ip err: {}", e);
+                "".to_string()
             }
-        }
+        };
 
         if !parts.uri.path().starts_with("/api") {
+            log::info!(
+                "allow no api access: {} {} {}",
+                src_ip,
+                parts.method,
+                parts.uri.path()
+            );
             return Ok(Self);
         }
 
         if WHITE_API_SET.contains(&(parts.method.clone(), parts.uri.path())) {
-            log::info!("white list api: {} {}", parts.method, parts.uri.path());
+            log::info!(
+                "white list api {} {} {}",
+                src_ip,
+                parts.method,
+                parts.uri.path()
+            );
             Ok(Self)
         } else {
             if let Some(authorization) = parts
@@ -147,6 +160,12 @@ where
                     match state.sled_db.contains_key(token) {
                         Ok(is_contains) => {
                             if is_contains {
+                                log::info!(
+                                    "auth success {} {} {}",
+                                    src_ip,
+                                    parts.method,
+                                    parts.uri.path()
+                                );
                                 return Ok(Self);
                             } else {
                                 log::warn!("sled db not contains token: {}", token);
@@ -160,7 +179,8 @@ where
                 }
             }
             log::warn!(
-                "not has auth info, api: {} {}",
+                "not has auth info, api {} {} {}",
+                src_ip,
                 parts.method,
                 parts.uri.path()
             );
