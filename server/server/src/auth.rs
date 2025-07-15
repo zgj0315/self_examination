@@ -34,35 +34,35 @@ async fn login(
         Ok(tbl_auth_user_op) => match tbl_auth_user_op {
             Some(tbl_auth_user) => {
                 if tbl_auth_user.password.eq(&login_input_dto.password) {
-                    return (
+                    (
                         StatusCode::OK,
                         [("code", "200"), ("msg", "ok")],
                         Json(json!({})),
-                    );
+                    )
                 } else {
-                    return (
+                    (
                         StatusCode::BAD_REQUEST,
                         [("code", "400"), ("msg", "user not exists")],
                         Json(json!({})),
-                    );
+                    )
                 }
             }
             None => {
                 log::warn!("user {} not exists", login_input_dto.username);
-                return (
+                (
                     StatusCode::BAD_REQUEST,
                     [("code", "400"), ("msg", "auth failed")],
                     Json(json!({})),
-                );
+                )
             }
         },
         Err(e) => {
             log::error!("tbl_auth_user find err: {}", e);
-            return (
+            (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 [("code", "500"), ("msg", "tbl_auth_user find err")],
                 Json(json!({})),
-            );
+            )
         }
     }
 }
