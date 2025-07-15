@@ -45,8 +45,7 @@ async fn main() -> anyhow::Result<()> {
     };
     let app = Router::new()
         .fallback_service(
-            ServeDir::new(dist_path)
-                .not_found_service(ServeFile::new(format!("{dist_path}/index.html"))),
+            ServeDir::new(dist_path).fallback(ServeFile::new(format!("{dist_path}/index.html"))),
         )
         .nest("/api", server::article::routers(app_state.clone()))
         .nest("/api", server::log::routers(app_state.clone()))
