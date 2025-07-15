@@ -8,7 +8,7 @@ use std::{
 use axum::{Router, middleware::from_extractor_with_state};
 use migration::{Migrator, MigratorTrait};
 use sea_orm::Database;
-use server::auth::RequireAuth;
+use server::auth::{self, RequireAuth};
 use tower_http::services::{ServeDir, ServeFile};
 
 #[tokio::main]
@@ -34,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
     Migrator::up(&db_conn, None).await?;
 
     let sled_db = sled::open("./data/sled_db")?;
-
+    auth::token_expired_task(sled_db.clone()).await?;
     let app_state = server::AppState { db_conn, sled_db };
     let dist_path = if Path::new("../../ui/dist").exists() {
         // 工程目录

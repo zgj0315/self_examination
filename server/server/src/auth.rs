@@ -36,7 +36,10 @@ async fn login(
             Some(tbl_auth_user) => {
                 if tbl_auth_user.password.eq(&login_input_dto.password) {
                     let token = uuid::Uuid::new_v4().to_string();
-                    if let Err(e) = app_state.sled_db.insert(token.clone(), "") {
+                    if let Err(e) = app_state
+                        .sled_db
+                        .insert(token.clone(), &chrono::Utc::now().timestamp().to_be_bytes())
+                    {
                         log::error!("sled db insert err: {}", e);
                     }
                     (
@@ -70,7 +73,10 @@ async fn login(
                     {
                         Ok(_) => {
                             let token = uuid::Uuid::new_v4().to_string();
-                            if let Err(e) = app_state.sled_db.insert(token.clone(), "") {
+                            if let Err(e) = app_state.sled_db.insert(
+                                token.clone(),
+                                &chrono::Utc::now().timestamp().to_be_bytes(),
+                            ) {
                                 log::error!("sled db insert err: {}", e);
                             }
                             return (
@@ -160,6 +166,12 @@ where
                     match state.sled_db.contains_key(token) {
                         Ok(is_contains) => {
                             if is_contains {
+                                if let Err(e) = state
+                                    .sled_db
+                                    .insert(token, &chrono::Utc::now().timestamp().to_be_bytes())
+                                {
+                                    log::error!("sled db insert err: {}", e);
+                                }
                                 log::info!(
                                     "auth success {} {} {}",
                                     src_ip,
@@ -187,4 +199,33 @@ where
             Err(StatusCode::UNAUTHORIZED)
         }
     }
+}
+
+pub async fn token_expired_task(sled_db: sled::Db) -> anyhow::Result<()> {
+    tokio::spawn(async move {
+        log::info!("token_expired_task running");
+        loop {
+            for r in sled_db.iter() {
+                if let Ok((k, v)) = r {
+                    let ts_now = chrono::Utc::now().timestamp();
+                    let ts = match v.as_ref().try_into() {
+                        Ok(bytes) => i64::from_be_bytes(bytes),
+                        Err(e) => {
+                            log::error!("v.as_ref().try_into() err: {}", e);
+                            0
+                        }
+                    };
+
+                    if ts_now - ts >= 60 {
+                        if let Err(e) = sled_db.remove(&k) {
+                            log::error!("sled remove err: {}", e);
+                        }
+                        log::info!("token expired {}", String::from_utf8_lossy(&k));
+                    }
+                }
+            }
+            tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
+        }
+    });
+    Ok(())
 }
