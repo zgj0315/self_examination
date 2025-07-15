@@ -1,6 +1,7 @@
 import React from "react";
 import type { FormProps } from "antd";
-import { Button, Checkbox, Form, Input } from "antd";
+import { Button, Checkbox, Form, Input, message } from "antd";
+import axios from "axios";
 
 type FieldType = {
   username?: string;
@@ -8,8 +9,28 @@ type FieldType = {
   remember?: string;
 };
 
-const onFinish: FormProps<FieldType>["onFinish"] = (values) => {
+const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
   console.log("Success:", values);
+  try {
+    const response = await axios.post("/api/login", {
+      username: values.username,
+      password: values.password,
+    });
+
+    // 假设后端返回 token
+    const { token } = response.data;
+    // 存储 token，可以根据需求选择 localStorage 或 Cookie
+    localStorage.setItem("token", token);
+
+    message.success("Login successful!");
+    // 可跳转首页等操作
+    // window.location.href = "/dashboard";
+  } catch (error: unknown) {
+    console.error("Login failed:", error);
+    // message.error(
+    //   error?.response?.data?.message || "Login failed, please try again."
+    // );
+  }
 };
 
 const onFinishFailed: FormProps<FieldType>["onFinishFailed"] = (errorInfo) => {
