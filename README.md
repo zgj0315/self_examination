@@ -3,7 +3,7 @@
 我是一个Web站点，用于记录每天对自己反省的内容
 ## 架构设计
 采用前后端分离的架构设计  
-前端：Vite, React, TypeScript, Ant-Design, Axios  
+前端：Vite, React, TypeScript, Ant-Design, Axios, react-router-dom  
 后端：Axum, Sea-Orm
 ## 功能设计
 文章字段：标题，正文，创建时间，修改时间，查看次数  
