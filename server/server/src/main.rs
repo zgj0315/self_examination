@@ -36,7 +36,13 @@ async fn main() -> anyhow::Result<()> {
     let sled_db = sled::open("./data/sled_db")?;
 
     let app_state = server::AppState { db_conn, sled_db };
-    let dist_path = "../../ui/dist";
+    let dist_path = if Path::new("../../ui/dist").exists() {
+        // 工程目录
+        "../../ui/dist"
+    } else {
+        // 部署目录
+        "../dist"
+    };
     let app = Router::new()
         .fallback_service(
             ServeDir::new(dist_path)
