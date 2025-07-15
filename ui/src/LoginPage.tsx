@@ -1,6 +1,6 @@
 import React from "react";
 import type { FormProps } from "antd";
-import { Button, Checkbox, Form, Input, message } from "antd";
+import { Button, Form, Input, message } from "antd";
 import axios from "axios";
 
 type FieldType = {
@@ -20,6 +20,7 @@ const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
     // 假设后端返回 token
     const { token } = response.data;
     // 存储 token，可以根据需求选择 localStorage 或 Cookie
+    console.log("token: ", token);
     localStorage.setItem("token", token);
 
     message.success("Login successful!");
@@ -43,7 +44,6 @@ const App: React.FC = () => (
     labelCol={{ span: 8 }}
     wrapperCol={{ span: 16 }}
     style={{ maxWidth: 600 }}
-    initialValues={{ remember: true }}
     onFinish={onFinish}
     onFinishFailed={onFinishFailed}
     autoComplete="off"
@@ -62,10 +62,6 @@ const App: React.FC = () => (
       rules={[{ required: true, message: "Please input your password!" }]}
     >
       <Input.Password />
-    </Form.Item>
-
-    <Form.Item<FieldType> name="remember" valuePropName="checked" label={null}>
-      <Checkbox>Remember me</Checkbox>
     </Form.Item>
 
     <Form.Item label={null}>
