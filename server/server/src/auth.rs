@@ -8,7 +8,7 @@ use axum::{
     routing::post,
 };
 use entity::tbl_auth_user;
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
+use sea_orm::{ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter};
 use serde::Deserialize;
 use serde_json::json;
 use validator::Validate;
@@ -37,7 +37,9 @@ async fn login(
                     (
                         StatusCode::OK,
                         [("code", "200"), ("msg", "ok")],
-                        Json(json!({})),
+                        Json(json!({
+                            "token": "123123"
+                        })),
                     )
                 } else {
                     (
@@ -48,6 +50,38 @@ async fn login(
                 }
             }
             None => {
+                // 初始化admin数据
+                if login_input_dto.username.eq("admin") {
+                    if login_input_dto.password.eq("123qwe!@#QWE") {
+                        let tbl_auth_user_am = tbl_auth_user::ActiveModel {
+                            username: Set(login_input_dto.username),
+                            password: Set(login_input_dto.password),
+                            ..Default::default()
+                        };
+                        match tbl_auth_user::Entity::insert(tbl_auth_user_am)
+                            .exec(&app_state.db_conn)
+                            .await
+                        {
+                            Ok(_) => {
+                                return (
+                                    StatusCode::OK,
+                                    [("code", "200"), ("msg", "ok")],
+                                    Json(json!({
+                                        "token": "123123"
+                                    })),
+                                );
+                            }
+                            Err(e) => {
+                                log::error!("tbl_auth_user insert err: {}", e);
+                                return (
+                                    StatusCode::INTERNAL_SERVER_ERROR,
+                                    [("code", "500"), ("msg", "tbl_auth_user insert err")],
+                                    Json(json!({})),
+                                );
+                            }
+                        }
+                    }
+                }
                 log::warn!("user {} not exists", login_input_dto.username);
                 (
                     StatusCode::BAD_REQUEST,
