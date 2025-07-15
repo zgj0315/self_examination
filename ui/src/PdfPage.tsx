@@ -13,6 +13,8 @@ const App: React.FC = () => {
   const [numPages, setNumPages] = useState<number>();
   const [pageNumber, setPageNumber] = useState<number>(1);
 
+  const token = localStorage.getItem("token");
+
   function onDocumentLoadSuccess({
     numPages: nextNumPages,
   }: PDFDocumentProxy): void {
@@ -30,7 +32,15 @@ const App: React.FC = () => {
   };
   return (
     <div>
-      <Document file="/api/files/4" onLoadSuccess={onDocumentLoadSuccess}>
+      <Document
+        file={{
+          url: "/api/files/4",
+          httpHeaders: {
+            Authorization: `Bearer ${token}`,
+          },
+        }}
+        onLoadSuccess={onDocumentLoadSuccess}
+      >
         <Page pageNumber={pageNumber} />
       </Document>
       <p>
