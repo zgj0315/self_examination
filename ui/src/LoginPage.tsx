@@ -17,20 +17,13 @@ const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
       password: values.password,
     });
 
-    // 假设后端返回 token
     const { token } = response.data;
-    // 存储 token，可以根据需求选择 localStorage 或 Cookie
     console.log("token: ", token);
     localStorage.setItem("token", token);
-
     message.success("Login successful!");
-    // 可跳转首页等操作
-    // window.location.href = "/dashboard";
+    window.location.href = "/";
   } catch (error: unknown) {
     console.error("Login failed:", error);
-    // message.error(
-    //   error?.response?.data?.message || "Login failed, please try again."
-    // );
   }
 };
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { UploadOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import { Button, message, Upload, Form, Input, Table } from "antd";
-import axios from "axios";
+import restful_api from "./RESTfulApi.tsx";
 import dayjs from "dayjs";
 
 type FileType = {
@@ -26,7 +26,7 @@ const props: UploadProps = {
     formData.append("file", file as Blob);
 
     try {
-      const response = await axios.post("/api/files", formData, {
+      const response = await restful_api.post("/api/files", formData, {
         onUploadProgress: (event) => {
           if (event.total) {
             const percent = Math.round((event.loaded * 100) / event.total);
@@ -64,7 +64,7 @@ const App: React.FC = () => {
     if (filters?.content) params.append("content", filters.content);
     setLoading(true);
     try {
-      const response = await axios.get(`/api/files?${params.toString()}`);
+      const response = await restful_api.get(`/api/files?${params.toString()}`);
       setFiles(response.data._embedded?.file);
       setPage(response.data.page);
       setCurrent(page);
@@ -79,7 +79,7 @@ const App: React.FC = () => {
   };
   const handleDownload = async (id: number) => {
     try {
-      const response = await axios.get(`/api/files/${id}`, {
+      const response = await restful_api.get(`/api/files/${id}`, {
         responseType: "blob", // 关键点
       });
 

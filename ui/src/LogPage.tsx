@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button, Form, Input, message, Table } from "antd";
-import axios from "axios";
+import restful_api from "./RESTfulApi.tsx";
 import dayjs from "dayjs";
 
 type Log = {
@@ -35,7 +35,7 @@ const App: React.FC = () => {
     if (filters?.content) params.append("content", filters.content);
     setLoading(true);
     try {
-      const response = await axios.get(`/api/logs?${params.toString()}`);
+      const response = await restful_api.get(`/api/logs?${params.toString()}`);
       setLogs(response.data._embedded?.log);
       setPage(response.data.page);
       setCurrent(page);

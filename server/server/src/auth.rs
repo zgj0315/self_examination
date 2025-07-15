@@ -1,13 +1,14 @@
-use std::net::SocketAddr;
+use std::{collections::HashSet, net::SocketAddr};
 
 use axum::{
     Json, Router,
     extract::{ConnectInfo, FromRequestParts, State},
-    http::{StatusCode, request::Parts},
+    http::{Method, StatusCode, header, request::Parts},
     response::IntoResponse,
     routing::post,
 };
 use entity::tbl_auth_user;
+use once_cell::sync::Lazy;
 use sea_orm::{ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter};
 use serde::Deserialize;
 use serde_json::json;
@@ -51,7 +52,9 @@ async fn login(
             }
             None => {
                 // 初始化admin数据
-                if login_input_dto.username.eq("admin") && login_input_dto.password.eq("123qwe!@#QWE") {
+                if login_input_dto.username.eq("admin")
+                    && login_input_dto.password.eq("123qwe!@#QWE")
+                {
                     let tbl_auth_user_am = tbl_auth_user::ActiveModel {
                         username: Set(login_input_dto.username),
                         password: Set(login_input_dto.password),
@@ -98,6 +101,9 @@ async fn login(
         }
     }
 }
+
+static WHITE_API_SET: Lazy<HashSet<(Method, &'static str)>> =
+    Lazy::new(|| HashSet::from([(Method::GET, "/api/articles"), (Method::POST, "/api/login")]));
 pub struct RequireAuth;
 
 impl<S> FromRequestParts<S> for RequireAuth
@@ -107,21 +113,35 @@ where
     type Rejection = StatusCode;
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        // let auth_header = parts
-        //     .headers
-        //     .get(header::AUTHORIZATION)
-        //     .and_then(|value| value.to_str().ok());
-        // log::info!("auth_header: {:?}", auth_header);
-
         match ConnectInfo::<SocketAddr>::from_request_parts(parts, state).await {
             Ok(ConnectInfo(socket_addr)) => {
-                // log::info!("socket_addr: {:?}", socket_addr);
                 log::info!("{} {} {}", socket_addr.ip(), parts.method, parts.uri);
             }
             Err(e) => {
                 log::error!("get source ip err: {}", e);
             }
         }
+
+        if WHITE_API_SET.contains(&(parts.method.clone(), parts.uri.path())) {
+            log::info!("white list api: {} {}", parts.method, parts.uri.path());
+        } else {
+            if let Some(authorization) = parts
+                .headers
+                .get(header::AUTHORIZATION)
+                .and_then(|value| value.to_str().ok())
+            {
+                if let Some((_, token)) = authorization.split_once(" ") {
+                    log::info!("token: {token}");
+                }
+            }
+
+            log::info!(
+                "not in white list api: {} {}",
+                parts.method,
+                parts.uri.path()
+            );
+        }
+
         Ok(Self)
     }
 }

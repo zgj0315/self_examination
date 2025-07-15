@@ -32,6 +32,8 @@ async fn main() -> anyhow::Result<()> {
 
     Migrator::up(&db_conn, None).await?;
 
+    // let sled_db = sled::open("./data/sled_db")?;
+
     let app_state = server::AppState { db_conn };
     let app = Router::new()
         .fallback_service(ServeDir::new("../../ui/dist"))

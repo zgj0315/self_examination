@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button, Form, Input, message, Table, Popconfirm, Modal } from "antd";
-import axios from "axios";
-
+import restful_api from "./RESTfulApi.tsx";
 import dayjs from "dayjs";
 
 type FieldType = {
@@ -35,7 +34,7 @@ const App: React.FC = () => {
   const onCreate = async (values: FieldType) => {
     console.log("Received values of form: ", values);
     try {
-      const response = await axios.post("/api/articles", values);
+      const response = await restful_api.post("/api/articles", values);
       console.log("create success, response: ", response);
       message.success("create success");
     } catch (e) {
@@ -49,7 +48,10 @@ const App: React.FC = () => {
   const onUpdate = async (values: UpdateField) => {
     console.log("Received values of form: ", values);
     try {
-      const response = await axios.patch(`/api/articles/${values.id}`, values);
+      const response = await restful_api.patch(
+        `/api/articles/${values.id}`,
+        values
+      );
       console.log("update success, response: ", response);
       message.success("update success");
     } catch (e) {
@@ -80,7 +82,9 @@ const App: React.FC = () => {
     if (filters?.content) params.append("content", filters.content);
     setLoading(true);
     try {
-      const response = await axios.get(`/api/articles?${params.toString()}`);
+      const response = await restful_api.get(
+        `/api/articles?${params.toString()}`
+      );
       setArticles(response.data._embedded?.article);
       setPage(response.data.page);
       setCurrent(page);
@@ -99,7 +103,7 @@ const App: React.FC = () => {
   };
   const handleDelete = async (id: number) => {
     try {
-      await axios.delete(`/api/articles/${id}`);
+      await restful_api.delete(`/api/articles/${id}`);
       message.success("删除成功");
       handleQuery();
     } catch (error) {
