@@ -9,7 +9,7 @@ use axum::{Router, middleware::from_extractor_with_state};
 use migration::{Migrator, MigratorTrait};
 use sea_orm::Database;
 use server::auth::RequireAuth;
-use tower_http::services::ServeDir;
+use tower_http::services::{ServeDir, ServeFile};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -36,8 +36,12 @@ async fn main() -> anyhow::Result<()> {
     let sled_db = sled::open("./data/sled_db")?;
 
     let app_state = server::AppState { db_conn, sled_db };
+    let dist_path = "../../ui/dist";
     let app = Router::new()
-        .fallback_service(ServeDir::new("../../ui/dist"))
+        .fallback_service(
+            ServeDir::new(dist_path)
+                .not_found_service(ServeFile::new(format!("{dist_path}/index.html"))),
+        )
         .nest("/api", server::article::routers(app_state.clone()))
         .nest("/api", server::log::routers(app_state.clone()))
         .nest("/api", server::file::routers(app_state.clone()))
