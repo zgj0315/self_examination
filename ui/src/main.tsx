@@ -16,7 +16,7 @@ createRoot(document.getElementById("root")!).render(
         <Route path="articles" element={<ArticlePage />} />
         <Route path="logs" element={<LogPage />} />
         <Route path="files" element={<FilePage />} />
-        <Route path="pdfs" element={<PdfPage />} />
+        <Route path="pdfs/:id" element={<PdfPage />} />
       </Route>
     </Routes>
   </BrowserRouter>

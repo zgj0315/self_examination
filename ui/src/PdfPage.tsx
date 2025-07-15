@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useParams } from "react-router-dom";
 import { pdfjs, Document, Page } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -10,6 +11,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 ).toString();
 
 const App: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
   const [numPages, setNumPages] = useState<number>();
   const [pageNumber, setPageNumber] = useState<number>(1);
 
@@ -34,7 +36,7 @@ const App: React.FC = () => {
     <div>
       <Document
         file={{
-          url: "/api/files/4",
+          url: `/api/files/${id}`,
           httpHeaders: {
             Authorization: `Bearer ${token}`,
           },

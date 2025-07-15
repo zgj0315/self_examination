@@ -52,11 +52,6 @@ const App: React.FC = () => {
               icon: <UploadOutlined />,
               label: "文件管理",
             },
-            {
-              key: "/pdfs",
-              icon: <UploadOutlined />,
-              label: "PDF",
-            },
           ]}
         />
       </Sider>

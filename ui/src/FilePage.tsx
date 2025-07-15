@@ -4,6 +4,7 @@ import type { UploadProps } from "antd";
 import { Button, message, Upload, Form, Input, Table } from "antd";
 import restful_api from "./RESTfulApi.tsx";
 import dayjs from "dayjs";
+import { useNavigate } from "react-router-dom";
 
 type FileType = {
   id: number;
@@ -45,6 +46,7 @@ const props: UploadProps = {
 };
 
 const App: React.FC = () => {
+  const navigate = useNavigate();
   const [files, setFiles] = useState<FileType[]>([]);
   const [current, setCurrent] = useState(1);
   const [page_size, setPageSize] = useState(5);
@@ -130,9 +132,14 @@ const App: React.FC = () => {
       title: "操作",
       key: "action",
       render: (_: unknown, record: FileType) => (
-        <Button type="link" onClick={() => handleDownload(record.id)}>
-          下载
-        </Button>
+        <>
+          <Button type="link" onClick={() => handleDownload(record.id)}>
+            下载
+          </Button>
+          <Button type="link" onClick={() => navigate(`/pdfs/${record.id}`)}>
+            查看
+          </Button>
+        </>
       ),
     },
   ];
