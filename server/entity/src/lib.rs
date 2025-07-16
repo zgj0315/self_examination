@@ -6,3 +6,4 @@ pub mod tbl_article;
 pub mod tbl_auth_user;
 pub mod tbl_file;
 pub mod tbl_log;
+pub mod tbl_pdf_article;

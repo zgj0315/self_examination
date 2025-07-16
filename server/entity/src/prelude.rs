@@ -4,3 +4,4 @@ pub use super::tbl_article::Entity as TblArticle;
 pub use super::tbl_auth_user::Entity as TblAuthUser;
 pub use super::tbl_file::Entity as TblFile;
 pub use super::tbl_log::Entity as TblLog;
+pub use super::tbl_pdf_article::Entity as TblPdfArticle;
