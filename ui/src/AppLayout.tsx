@@ -6,6 +6,7 @@ import {
 } from "@ant-design/icons";
 import { Layout, Menu, theme, Button } from "antd";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import restful_api from "./RESTfulApi.tsx";
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -74,9 +75,21 @@ const App: React.FC = () => {
           {localStorage.getItem("token") && (
             <Button
               type="link"
-              onClick={() => {
-                localStorage.removeItem("token");
-                window.location.reload();
+              onClick={async () => {
+                const token = localStorage.getItem("token");
+                if (token) {
+                  try {
+                    await restful_api.post(`/api/logout/${token}`, null, {
+                      headers: {
+                        Authorization: `Bearer ${token}`,
+                      },
+                    });
+                  } catch (error) {
+                    console.error("Logout failed", error);
+                  }
+                  localStorage.removeItem("token");
+                  window.location.reload();
+                }
               }}
             >
               Logout

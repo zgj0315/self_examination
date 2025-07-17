@@ -2,7 +2,7 @@ use std::{collections::HashSet, net::SocketAddr, ops::Deref};
 
 use axum::{
     Json, Router,
-    extract::{ConnectInfo, FromRequestParts, State},
+    extract::{ConnectInfo, FromRequestParts, Path, State},
     http::{Method, StatusCode, header, request::Parts},
     response::IntoResponse,
     routing::post,
@@ -16,7 +16,10 @@ use validator::Validate;
 
 use crate::AppState;
 pub fn routers(state: AppState) -> Router {
-    Router::new().route("/login", post(login)).with_state(state)
+    Router::new()
+        .route("/login", post(login))
+        .route("/logout/{token}", post(logout))
+        .with_state(state)
 }
 #[derive(Deserialize, Debug, Validate)]
 struct LoginInputDto {
@@ -112,6 +115,25 @@ async fn login(
                 [("code", "500"), ("msg", "tbl_auth_user find err")],
                 Json(json!({})),
             )
+        }
+    }
+}
+
+async fn logout(Path(token): Path<String>, app_state: State<AppState>) -> impl IntoResponse {
+    log::info!("{token} logout");
+    match app_state.sled_db.remove(&token) {
+        Ok(op) => match op {
+            Some(_) => {
+                return (StatusCode::OK, Json(json!({})));
+            }
+            None => {
+                log::warn!("token {token} not exists");
+                return (StatusCode::OK, Json(json!({})));
+            }
+        },
+        Err(e) => {
+            log::error!("sled remove {token} err: {}", e);
+            return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({})));
         }
     }
 }
