@@ -57,6 +57,11 @@ const App: React.FC = () => {
               icon: <UserOutlined />,
               label: "文章列表",
             },
+            {
+              key: "/pdf_article_access_logs",
+              icon: <UserOutlined />,
+              label: "浏览记录",
+            },
           ]}
         />
       </Sider>

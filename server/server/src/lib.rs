@@ -5,6 +5,7 @@ pub mod auth;
 pub mod file;
 pub mod log;
 pub mod pdf_article;
+pub mod pdf_article_access_log;
 
 #[derive(Clone)]
 pub struct AppState {

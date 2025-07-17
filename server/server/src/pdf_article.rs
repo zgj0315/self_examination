@@ -56,7 +56,7 @@ async fn query(
     }
 
     let paginator = select
-        .order_by_desc(tbl_pdf_article::Column::UpdatedAt)
+        .order_by_desc(tbl_pdf_article::Column::CreatedAt)
         .paginate(&app_state.db_conn, query_input_dto.size);
     let num_pages = match paginator.num_pages().await {
         Ok(v) => v,
@@ -97,7 +97,7 @@ async fn query(
             );
         }
     };
-    let mut articles = Vec::new();
+    let mut pdf_articles = Vec::new();
     for tbl_pdf_article in tbl_pdf_articles {
         let access_count = match tbl_pdf_article_access_log::Entity::find()
             .filter(tbl_pdf_article_access_log::Column::PdfArticleId.eq(tbl_pdf_article.id))
@@ -116,7 +116,7 @@ async fn query(
                 );
             }
         };
-        articles.push(QueryOutputDto {
+        pdf_articles.push(QueryOutputDto {
             id: tbl_pdf_article.id,
             title: tbl_pdf_article.title,
             access_count,
@@ -134,7 +134,7 @@ async fn query(
               "total_pages":num_pages
             },
             "_embedded":{
-                "article":articles
+                "pdf_article":pdf_articles
             }
            }
         )),

@@ -51,6 +51,10 @@ async fn main() -> anyhow::Result<()> {
         .nest("/api", server::log::routers(app_state.clone()))
         .nest("/api", server::file::routers(app_state.clone()))
         .nest("/api", server::pdf_article::routers(app_state.clone()))
+        .nest(
+            "/api",
+            server::pdf_article_access_log::routers(app_state.clone()),
+        )
         .nest("/api", server::auth::routers(app_state.clone()))
         .layer(from_extractor_with_state::<RequireAuth, _>(Arc::new(
             app_state,

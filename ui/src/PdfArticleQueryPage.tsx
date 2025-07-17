@@ -102,7 +102,7 @@ const App: React.FC = () => {
       const response = await restful_api.get(
         `/api/pdf_articles?${params.toString()}`
       );
-      setArticles(response.data._embedded?.article);
+      setArticles(response.data._embedded?.pdf_article);
       setPage(response.data.page);
       setCurrent(page);
       setPageSize(size);

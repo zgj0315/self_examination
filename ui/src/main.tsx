@@ -7,6 +7,7 @@ import FilePage from "./FilePage.tsx";
 import PdfPage from "./PdfPage.tsx";
 import LoginPage from "./LoginPage.tsx";
 import PdfArticleQueryPage from "./PdfArticleQueryPage.tsx";
+import PdfArticleAccessLogQueryPage from "./PdfArticleAccessLogQueryPage.tsx";
 import PdfArticleDetailPage from "./PdfArticleDetailPage.tsx";
 
 createRoot(document.getElementById("root")!).render(
@@ -21,6 +22,10 @@ createRoot(document.getElementById("root")!).render(
         <Route path="pdfs/:id" element={<PdfPage />} />
         <Route path="pdf_articles" element={<PdfArticleQueryPage />} />
         <Route path="pdf_articles/:id" element={<PdfArticleDetailPage />} />
+        <Route
+          path="pdf_article_access_logs"
+          element={<PdfArticleAccessLogQueryPage />}
+        />
       </Route>
     </Routes>
   </BrowserRouter>
