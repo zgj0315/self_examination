@@ -2,7 +2,7 @@ import React from "react";
 import {
   // UploadOutlined,
   UserOutlined,
-  // VideoCameraOutlined,
+  VideoCameraOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, theme } from "antd";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
@@ -59,7 +59,7 @@ const App: React.FC = () => {
             },
             {
               key: "/pdf_article_access_logs",
-              icon: <UserOutlined />,
+              icon: <VideoCameraOutlined />,
               label: "浏览记录",
             },
           ]}
