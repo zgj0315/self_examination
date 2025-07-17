@@ -38,6 +38,8 @@ const App: React.FC = () => {
         const response = await restful_api.get(`/api/pdf_articles/${id}`, {
           responseType: "blob",
         });
+        console.log("Blob type:", response.data.type); // 调试 Blob 类型
+        console.log("Blob size:", response.data.size); // 调试 Blob 大小
         setPdfData(response.data);
       } catch (error) {
         console.error("Failed to fetch PDF:", error);

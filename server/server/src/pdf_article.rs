@@ -158,6 +158,10 @@ async fn create(app_state: State<AppState>, mut multipart: Multipart) -> impl In
 
         if let Some(content_type) = field.content_type() {
             log::info!("content_type: {content_type}");
+            if !content_type.eq("application/pdf") {
+                log::warn!("content-type should be application/pdf");
+                return (StatusCode::BAD_REQUEST, Json(json!({})));
+            }
             let content_bytes = if content_type.eq("application/json") {
                 match field.text().await {
                     Ok(text) => text.into_bytes(),
@@ -341,15 +345,15 @@ async fn get_pdf_content(
                 let mut headers = HeaderMap::new();
                 headers.insert(
                     header::CONTENT_TYPE,
-                    HeaderValue::from_static("application/octet-stream"),
+                    HeaderValue::from_static("application/pdf"),
                 );
                 headers.insert(
                     header::CONTENT_DISPOSITION,
                     HeaderValue::from_str(&format!(
-                        "attachment; filename=\"{}\"",
+                        "inline; filename=\"{}\"",
                         tbl_pdf_article.title
                     ))
-                    .unwrap_or_else(|_| HeaderValue::from_static("attachment")),
+                    .unwrap_or_else(|_| HeaderValue::from_static("inline")),
                 );
                 (StatusCode::OK, headers, tbl_pdf_article.pdf_content).into_response()
             }
