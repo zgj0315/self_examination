@@ -26,6 +26,7 @@ const App: React.FC = () => {
   const [page_size, setPageSize] = useState(5);
   const [page, setPage] = useState<Page>();
   const [loading, setLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
   const create_props: UploadProps = {
     name: "file",
@@ -166,27 +167,33 @@ const App: React.FC = () => {
           >
             查看
           </Button>
-          <Upload {...update_props(record.id)}>
-            <Button danger type="link">
-              编辑
-            </Button>
-          </Upload>
-          <Popconfirm
-            title="确定要删除这条记录吗？"
-            onConfirm={() => handleDelete(record.id)}
-            okText="确定"
-            cancelText="取消"
-          >
-            <Button danger type="link">
-              删除
-            </Button>
-          </Popconfirm>
+          {isLoggedIn && (
+            <>
+              <Upload {...update_props(record.id)}>
+                <Button danger type="link">
+                  编辑
+                </Button>
+              </Upload>
+              <Popconfirm
+                title="确定要删除这条记录吗？"
+                onConfirm={() => handleDelete(record.id)}
+                okText="确定"
+                cancelText="取消"
+              >
+                <Button danger type="link">
+                  删除
+                </Button>
+              </Popconfirm>
+            </>
+          )}
         </>
       ),
     },
   ];
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
     handleQuery();
   }, []);
 
@@ -205,11 +212,13 @@ const App: React.FC = () => {
             查询
           </Button>
         </Form.Item>
-        <Form.Item>
-          <Upload {...create_props}>
-            <Button icon={<UploadOutlined />}>上传文件</Button>
-          </Upload>
-        </Form.Item>
+        {isLoggedIn && (
+          <Form.Item>
+            <Upload {...create_props}>
+              <Button icon={<UploadOutlined />}>上传文件</Button>
+            </Upload>
+          </Form.Item>
+        )}
       </Form>
 
       <Table

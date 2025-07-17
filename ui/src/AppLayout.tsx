@@ -4,7 +4,7 @@ import {
   UserOutlined,
   VideoCameraOutlined,
 } from "@ant-design/icons";
-import { Layout, Menu, theme } from "antd";
+import { Layout, Menu, theme, Button } from "antd";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 
 const { Header, Content, Footer, Sider } = Layout;
@@ -17,6 +17,36 @@ const App: React.FC = () => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
+  const menuItems = [
+    {
+      key: "/pdf_articles",
+      icon: <UserOutlined />,
+      label: "文章列表",
+    },
+    // {
+    //   key: "/articles",
+    //   icon: <UserOutlined />,
+    //   label: "文章管理",
+    // },
+    // {
+    //   key: "/logs",
+    //   icon: <VideoCameraOutlined />,
+    //   label: "操作日志",
+    // },
+    // {
+    //   key: "/files",
+    //   icon: <UploadOutlined />,
+    //   label: "文件管理",
+    // },
+  ];
+  const isLoggedIn = !!localStorage.getItem("token");
+  if (isLoggedIn) {
+    menuItems.push({
+      key: "/pdf_article_access_logs",
+      icon: <VideoCameraOutlined />,
+      label: "浏览记录",
+    });
+  }
   return (
     <Layout>
       <Sider
@@ -36,37 +66,23 @@ const App: React.FC = () => {
           defaultSelectedKeys={["4"]}
           selectedKeys={[location.pathname]}
           onClick={({ key }) => navigate(key)}
-          items={[
-            // {
-            //   key: "/articles",
-            //   icon: <UserOutlined />,
-            //   label: "文章管理",
-            // },
-            // {
-            //   key: "/logs",
-            //   icon: <VideoCameraOutlined />,
-            //   label: "操作日志",
-            // },
-            // {
-            //   key: "/files",
-            //   icon: <UploadOutlined />,
-            //   label: "文件管理",
-            // },
-            {
-              key: "/pdf_articles",
-              icon: <UserOutlined />,
-              label: "文章列表",
-            },
-            {
-              key: "/pdf_article_access_logs",
-              icon: <VideoCameraOutlined />,
-              label: "浏览记录",
-            },
-          ]}
+          items={menuItems}
         />
       </Sider>
       <Layout>
-        <Header style={{ padding: 0, background: colorBgContainer }} />
+        <Header style={{ padding: 0, background: colorBgContainer }}>
+          {localStorage.getItem("token") && (
+            <Button
+              type="link"
+              onClick={() => {
+                localStorage.removeItem("token");
+                window.location.reload();
+              }}
+            >
+              Logout
+            </Button>
+          )}
+        </Header>
         <Content style={{ margin: "24px 16px 0" }}>
           <div
             style={{
