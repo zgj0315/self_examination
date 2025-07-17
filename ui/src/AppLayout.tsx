@@ -1,8 +1,8 @@
 import React from "react";
 import {
-  UploadOutlined,
+  // UploadOutlined,
   UserOutlined,
-  VideoCameraOutlined,
+  // VideoCameraOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, theme } from "antd";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
@@ -37,20 +37,25 @@ const App: React.FC = () => {
           selectedKeys={[location.pathname]}
           onClick={({ key }) => navigate(key)}
           items={[
+            // {
+            //   key: "/articles",
+            //   icon: <UserOutlined />,
+            //   label: "文章管理",
+            // },
+            // {
+            //   key: "/logs",
+            //   icon: <VideoCameraOutlined />,
+            //   label: "操作日志",
+            // },
+            // {
+            //   key: "/files",
+            //   icon: <UploadOutlined />,
+            //   label: "文件管理",
+            // },
             {
-              key: "/articles",
+              key: "/pdf_articles",
               icon: <UserOutlined />,
-              label: "文章管理",
-            },
-            {
-              key: "/logs",
-              icon: <VideoCameraOutlined />,
-              label: "操作日志",
-            },
-            {
-              key: "/files",
-              icon: <UploadOutlined />,
-              label: "文件管理",
+              label: "文章列表",
             },
           ]}
         />

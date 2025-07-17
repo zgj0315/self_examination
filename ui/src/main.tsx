@@ -6,17 +6,21 @@ import AppLayout from "./AppLayout.tsx";
 import FilePage from "./FilePage.tsx";
 import PdfPage from "./PdfPage.tsx";
 import LoginPage from "./LoginPage.tsx";
+import PdfArticleQueryPage from "./PdfArticleQueryPage.tsx";
+import PdfArticleDetailPage from "./PdfArticleDetailPage.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
     <Routes>
       <Route path="login" element={<LoginPage />} />
       <Route path="/" element={<AppLayout />}>
-        <Route index element={<Navigate to="/articles" replace />} />
+        <Route index element={<Navigate to="/pdf_articles" replace />} />
         <Route path="articles" element={<ArticlePage />} />
         <Route path="logs" element={<LogPage />} />
         <Route path="files" element={<FilePage />} />
         <Route path="pdfs/:id" element={<PdfPage />} />
+        <Route path="pdf_articles" element={<PdfArticleQueryPage />} />
+        <Route path="pdf_articles/:id" element={<PdfArticleDetailPage />} />
       </Route>
     </Routes>
   </BrowserRouter>

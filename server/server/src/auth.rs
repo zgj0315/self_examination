@@ -116,8 +116,14 @@ async fn login(
     }
 }
 
-static WHITE_API_SET: Lazy<HashSet<(Method, &'static str)>> =
-    Lazy::new(|| HashSet::from([(Method::GET, "/api/articles"), (Method::POST, "/api/login")]));
+static WHITE_API_SET: Lazy<HashSet<(Method, &'static str)>> = Lazy::new(|| {
+    HashSet::from([
+        (Method::GET, "/api/articles"),
+        (Method::POST, "/api/login"),
+        (Method::GET, "/api/pdf_articles"),
+        (Method::POST, "/api/pdf_articles"),
+    ])
+});
 pub struct RequireAuth;
 
 impl<S> FromRequestParts<S> for RequireAuth
@@ -147,57 +153,61 @@ where
             );
             return Ok(Self);
         }
+        for (method, api) in WHITE_API_SET.iter() {
+            if method == parts.method {
+                if parts.uri.path().starts_with(api) {
+                    log::info!(
+                        "white list api {} {} {}",
+                        src_ip,
+                        parts.method,
+                        parts.uri.path()
+                    );
+                    return Ok(Self);
+                }
+            }
+        }
 
-        if WHITE_API_SET.contains(&(parts.method.clone(), parts.uri.path())) {
-            log::info!(
-                "white list api {} {} {}",
-                src_ip,
-                parts.method,
-                parts.uri.path()
-            );
-            Ok(Self)
-        } else {
-            if let Some(authorization) = parts
-                .headers
-                .get(header::AUTHORIZATION)
-                .and_then(|value| value.to_str().ok())
-            {
-                if let Some((_, token)) = authorization.split_once(" ") {
-                    match state.sled_db.contains_key(token) {
-                        Ok(is_contains) => {
-                            if is_contains {
-                                if let Err(e) = state
-                                    .sled_db
-                                    .insert(token, &chrono::Utc::now().timestamp().to_be_bytes())
-                                {
-                                    log::error!("sled db insert err: {}", e);
-                                }
-                                log::info!(
-                                    "auth success {} {} {}",
-                                    src_ip,
-                                    parts.method,
-                                    parts.uri.path()
-                                );
-                                return Ok(Self);
-                            } else {
-                                log::warn!("sled db not contains token: {}", token);
-                                return Err(StatusCode::UNAUTHORIZED);
+        log::info!("auth api {} {} {}", src_ip, parts.method, parts.uri.path());
+        if let Some(authorization) = parts
+            .headers
+            .get(header::AUTHORIZATION)
+            .and_then(|value| value.to_str().ok())
+        {
+            if let Some((_, token)) = authorization.split_once(" ") {
+                match state.sled_db.contains_key(token) {
+                    Ok(is_contains) => {
+                        if is_contains {
+                            if let Err(e) = state
+                                .sled_db
+                                .insert(token, &chrono::Utc::now().timestamp().to_be_bytes())
+                            {
+                                log::error!("sled db insert err: {}", e);
                             }
+                            log::info!(
+                                "auth success {} {} {}",
+                                src_ip,
+                                parts.method,
+                                parts.uri.path()
+                            );
+                            return Ok(Self);
+                        } else {
+                            log::warn!("sled db not contains token: {}", token);
+                            return Err(StatusCode::UNAUTHORIZED);
                         }
-                        Err(e) => {
-                            log::error!("sled db contains key err: {}", e);
-                        }
+                    }
+                    Err(e) => {
+                        log::error!("sled db contains key err: {}", e);
                     }
                 }
             }
-            log::warn!(
-                "not has auth info, api {} {} {}",
-                src_ip,
-                parts.method,
-                parts.uri.path()
-            );
-            Err(StatusCode::UNAUTHORIZED)
         }
+        log::warn!(
+            "not has auth info, api {} {} {}",
+            src_ip,
+            parts.method,
+            parts.uri.path()
+        );
+        Err(StatusCode::UNAUTHORIZED)
     }
 }
 

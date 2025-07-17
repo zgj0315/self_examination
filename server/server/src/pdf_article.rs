@@ -1,6 +1,8 @@
+use std::net::SocketAddr;
+
 use axum::{
     Json, Router,
-    extract::{Multipart, Path, Query, State},
+    extract::{ConnectInfo, Multipart, Path, Query, State},
     http::{HeaderMap, HeaderValue, StatusCode, header},
     response::IntoResponse,
     routing::{get, patch},
@@ -309,6 +311,8 @@ async fn delete(Path(id): Path<i32>, State(app_state): State<AppState>) -> impl 
 
 async fn get_pdf_content(
     Path(id): Path<i32>,
+    ConnectInfo(socket_addr): ConnectInfo<SocketAddr>,
+    headers: HeaderMap,
     State(app_state): State<AppState>,
 ) -> impl IntoResponse {
     match tbl_pdf_article::Entity::find_by_id(id)
@@ -317,6 +321,23 @@ async fn get_pdf_content(
     {
         Ok(tbl_pdf_article_op) => match tbl_pdf_article_op {
             Some(tbl_pdf_article) => {
+                let user_agent = headers
+                    .get("user-agent")
+                    .and_then(|v| v.to_str().ok())
+                    .unwrap_or("Unknown");
+                let tbl_pdf_article_access_log_am = tbl_pdf_article_access_log::ActiveModel {
+                    pdf_article_id: Set(tbl_pdf_article.id),
+                    src_ip: Set(socket_addr.ip().to_string()),
+                    user_agent: Set(user_agent.to_string()),
+                    ..Default::default()
+                };
+                if let Err(e) =
+                    tbl_pdf_article_access_log::Entity::insert(tbl_pdf_article_access_log_am)
+                        .exec(&app_state.db_conn)
+                        .await
+                {
+                    log::error!("tbl_pdf_article_access_log insert err: {}", e);
+                }
                 let mut headers = HeaderMap::new();
                 headers.insert(
                     header::CONTENT_TYPE,
