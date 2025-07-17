@@ -20,7 +20,6 @@ type Page = {
 
 const App: React.FC = () => {
   const navigate = useNavigate();
-  const [form] = Form.useForm();
 
   const [articles, setArticles] = useState<Article[]>([]);
   const [current, setCurrent] = useState(1);
@@ -30,6 +29,7 @@ const App: React.FC = () => {
 
   const create_props: UploadProps = {
     name: "file",
+    showUploadList: false,
     customRequest: async (options) => {
       const { file, onSuccess, onProgress } = options;
 
@@ -54,6 +54,38 @@ const App: React.FC = () => {
       }
     },
   };
+  const update_props = (id: number): UploadProps => ({
+    name: "file",
+    showUploadList: false,
+    customRequest: async (options) => {
+      const { file, onSuccess, onProgress } = options;
+
+      const formData = new FormData();
+      formData.append("file", file as Blob);
+
+      try {
+        const response = await restful_api.patch(
+          `/api/pdf_articles/${id}`,
+          formData,
+          {
+            onUploadProgress: (event) => {
+              if (event.total) {
+                const percent = Math.round((event.loaded * 100) / event.total);
+                onProgress?.({ percent });
+              }
+            },
+          }
+        );
+        onSuccess?.(response.data);
+        message.success(`${(file as File).name} uploaded successfully`);
+        handleQuery();
+      } catch (error) {
+        console.error("Upload error:", error);
+        message.error(`${(file as File).name} upload failed.`);
+      }
+    },
+  });
+
   const handleQuery = async (
     page = current,
     size = page_size,
@@ -82,9 +114,7 @@ const App: React.FC = () => {
       setLoading(false);
     }
   };
-  const handleUpdate = (record: Article) => {
-    form.setFieldsValue(record);
-  };
+
   const handleDelete = async (id: number) => {
     try {
       await restful_api.delete(`/api/pdf_articles/${id}`);
@@ -136,9 +166,11 @@ const App: React.FC = () => {
           >
             查看
           </Button>
-          <Button type="link" onClick={() => handleUpdate(record)}>
-            编辑
-          </Button>
+          <Upload {...update_props(record.id)}>
+            <Button danger type="link">
+              编辑
+            </Button>
+          </Upload>
           <Popconfirm
             title="确定要删除这条记录吗？"
             onConfirm={() => handleDelete(record.id)}
