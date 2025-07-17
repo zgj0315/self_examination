@@ -29,7 +29,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(DeriveIden)]
-enum TblPdfArticle {
+pub enum TblPdfArticle {
     Table,
     Id,
     Title,
