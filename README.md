@@ -1,6 +1,7 @@
 # 吾日三省吾身
 ## 我是什么
-我是一个Web站点，用于记录每天对自己反省的内容
+我是一个单体Web站点，用于记录每天对自己反省的内容  
+没有Nginx，没有Redis，没有数据库
 ## 架构设计
 采用前后端分离的架构设计  
 前端：Vite, React, TypeScript, Ant-Design, Axios, react-router-dom  
