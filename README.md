@@ -5,9 +5,6 @@
 采用前后端分离的架构设计  
 前端：Vite, React, TypeScript, Ant-Design, Axios, react-router-dom  
 后端：Axum, Sea-Orm
-## 功能设计
-文章字段：标题，正文，创建时间，修改时间，查看次数  
-新增文章，分页列表显示，修改文章，删除文章
 
 ## FAQ
 ### 工程如何开发联调
