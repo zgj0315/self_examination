@@ -349,11 +349,7 @@ async fn get_pdf_content(
                 );
                 headers.insert(
                     header::CONTENT_DISPOSITION,
-                    HeaderValue::from_str(&format!(
-                        "inline; filename=\"{}\"",
-                        tbl_pdf_article.title
-                    ))
-                    .unwrap_or_else(|_| HeaderValue::from_static("inline")),
+                    HeaderValue::from_static("inline"),
                 );
                 (StatusCode::OK, headers, tbl_pdf_article.pdf_content).into_response()
             }
