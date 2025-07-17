@@ -1,25 +1,10 @@
 import React, { useEffect, useState } from "react";
-import {
-  Button,
-  Form,
-  Input,
-  message,
-  Table,
-  Popconfirm,
-  Modal,
-  Upload,
-} from "antd";
+import { Button, Form, Input, message, Table, Popconfirm, Upload } from "antd";
 import restful_api from "./RESTfulApi.tsx";
 import dayjs from "dayjs";
 import { UploadOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import { useNavigate } from "react-router-dom";
-
-type UpdateField = {
-  id?: number;
-  title?: string;
-  content?: string;
-};
 
 type Article = {
   id: number;
@@ -33,53 +18,9 @@ type Page = {
   total_pages: number;
 };
 
-const props: UploadProps = {
-  name: "file",
-  customRequest: async (options) => {
-    const { file, onSuccess, onProgress } = options;
-
-    const formData = new FormData();
-    formData.append("file", file as Blob);
-
-    try {
-      const response = await restful_api.post("/api/pdf_articles", formData, {
-        onUploadProgress: (event) => {
-          if (event.total) {
-            const percent = Math.round((event.loaded * 100) / event.total);
-            onProgress?.({ percent });
-          }
-        },
-      });
-      onSuccess?.(response.data);
-      message.success(`${(file as File).name} uploaded successfully`);
-    } catch (error) {
-      console.error("Upload error:", error);
-      message.error(`${(file as File).name} upload failed.`);
-    }
-  },
-};
-
 const App: React.FC = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
-  const [update_open, setUpdateOpen] = useState(false);
-
-  const onUpdate = async (values: UpdateField) => {
-    console.log("Received values of form: ", values);
-    try {
-      const response = await restful_api.patch(
-        `/api/pdf_articles/${values.id}`,
-        values
-      );
-      console.log("update success, response: ", response);
-      message.success("update success");
-    } catch (e) {
-      console.error("update error: ", e);
-      message.error("update error");
-    }
-    setUpdateOpen(false);
-    handleQuery();
-  };
 
   const [articles, setArticles] = useState<Article[]>([]);
   const [current, setCurrent] = useState(1);
@@ -87,6 +28,32 @@ const App: React.FC = () => {
   const [page, setPage] = useState<Page>();
   const [loading, setLoading] = useState(false);
 
+  const create_props: UploadProps = {
+    name: "file",
+    customRequest: async (options) => {
+      const { file, onSuccess, onProgress } = options;
+
+      const formData = new FormData();
+      formData.append("file", file as Blob);
+
+      try {
+        const response = await restful_api.post("/api/pdf_articles", formData, {
+          onUploadProgress: (event) => {
+            if (event.total) {
+              const percent = Math.round((event.loaded * 100) / event.total);
+              onProgress?.({ percent });
+            }
+          },
+        });
+        onSuccess?.(response.data);
+        message.success(`${(file as File).name} uploaded successfully`);
+        handleQuery();
+      } catch (error) {
+        console.error("Upload error:", error);
+        message.error(`${(file as File).name} upload failed.`);
+      }
+    },
+  };
   const handleQuery = async (
     page = current,
     size = page_size,
@@ -98,7 +65,6 @@ const App: React.FC = () => {
     params.append("size", size.toString());
     params.append("page", (page - 1).toString());
     if (filters?.title) params.append("title", filters.title);
-    if (filters?.content) params.append("content", filters.content);
     setLoading(true);
     try {
       const response = await restful_api.get(
@@ -118,7 +84,6 @@ const App: React.FC = () => {
   };
   const handleUpdate = (record: Article) => {
     form.setFieldsValue(record);
-    setUpdateOpen(true);
   };
   const handleDelete = async (id: number) => {
     try {
@@ -195,54 +160,6 @@ const App: React.FC = () => {
 
   return (
     <>
-      <Modal
-        open={update_open}
-        title="Update a new article"
-        okText="Update"
-        cancelText="Cancel"
-        okButtonProps={{ autoFocus: true, htmlType: "submit" }}
-        onCancel={() => setUpdateOpen(false)}
-        destroyOnHidden
-        modalRender={(dom) => (
-          <Form
-            layout="vertical"
-            form={form}
-            name="form_in_modal"
-            clearOnDestroy
-            onFinish={(values) => onUpdate(values)}
-          >
-            {dom}
-          </Form>
-        )}
-      >
-        <Form.Item name="id" label="ID" hidden>
-          <Input />
-        </Form.Item>
-        <Form.Item
-          name="title"
-          label="Title"
-          rules={[
-            {
-              required: true,
-              message: "Please input the title of article!",
-            },
-          ]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          name="content"
-          label="Content"
-          rules={[
-            {
-              required: true,
-              message: "Please input the Content of article!",
-            },
-          ]}
-        >
-          <Input.TextArea rows={4} />
-        </Form.Item>
-      </Modal>
       <Form
         layout="inline"
         onFinish={(values) => handleQuery(1, page_size, values)}
@@ -257,7 +174,7 @@ const App: React.FC = () => {
           </Button>
         </Form.Item>
         <Form.Item>
-          <Upload {...props}>
+          <Upload {...create_props}>
             <Button icon={<UploadOutlined />}>上传文件</Button>
           </Upload>
         </Form.Item>
