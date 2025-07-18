@@ -1,14 +1,20 @@
 use std::{
     fs::{self, File},
     net::SocketAddr,
-    path::Path,
+    path::{Path, PathBuf},
+    str::FromStr,
     sync::Arc,
 };
 
 use axum::{Router, middleware::from_extractor_with_state};
+use axum_server::tls_rustls::RustlsConfig;
 use migration::{Migrator, MigratorTrait};
+use rustls::crypto;
 use sea_orm::Database;
-use server::auth::{self, RequireAuth};
+use server::{
+    auth::{self, RequireAuth},
+    config::SERVER_TOML,
+};
 use tower_http::services::{ServeDir, ServeFile};
 
 #[tokio::main]
@@ -59,13 +65,19 @@ async fn main() -> anyhow::Result<()> {
         .layer(from_extractor_with_state::<RequireAuth, _>(Arc::new(
             app_state,
         )));
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;
-    log::info!("listening on {}", listener.local_addr()?);
 
-    axum::serve(
-        listener,
-        app.into_make_service_with_connect_info::<SocketAddr>(),
+    if let Err(e) = crypto::ring::default_provider().install_default() {
+        log::error!("default_provider install err: {:?}", e);
+    }
+    let config = RustlsConfig::from_pem_file(
+        PathBuf::from("./config").join("zhaogj-ca.crt"),
+        PathBuf::from("./config").join("zhaogj-ca.key"),
     )
     .await?;
+    let addr = SocketAddr::from_str(&SERVER_TOML.server.addr)?;
+    log::info!("listening on {}", addr);
+    axum_server::bind_rustls(addr, config)
+        .serve(app.into_make_service_with_connect_info::<SocketAddr>())
+        .await?;
     Ok(())
 }
