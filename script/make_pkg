@@ -18,7 +18,7 @@ mkdir -p se_server/html
 cd server
 cargo update
 cargo zigbuild -r --target=x86_64-unknown-linux-musl
-cp target/x86_64-unknown-linux-musl/release/server ../se_server/bin/
+cp target/x86_64-unknown-linux-musl/release/server ../se_server/bin/se_server
 cp script/service ../se_server/bin/
 chmod +x ../se_server/bin/*
 cp server/config/* ../se_server/config
