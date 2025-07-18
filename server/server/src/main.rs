@@ -47,7 +47,7 @@ async fn main() -> anyhow::Result<()> {
         "../../ui/dist"
     } else {
         // 部署目录
-        "../dist"
+        "../html"
     };
     let app = Router::new()
         .fallback_service(

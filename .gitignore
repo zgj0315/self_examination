@@ -8,3 +8,4 @@ ui/node_modules
 ui/package-lock.json
 ui/dist
 ca_maker/home-ca
+se_server.tar.gz

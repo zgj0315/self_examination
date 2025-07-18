@@ -1,0 +1,36 @@
+#!/bin/bash
+# Created by zhaogj on 20240528
+set -o errexit
+set -x
+
+cd "$(dirname "${0}")" || exit
+cd ../
+
+rm -rf se_server.tar.gz
+rm -rf se_server
+mkdir -p se_server/bin
+mkdir -p se_server/config
+mkdir -p se_server/log
+mkdir -p se_server/data
+mkdir -p se_server/html
+
+# server
+cd server
+cargo update
+cargo zigbuild -r --target=x86_64-unknown-linux-musl
+cp target/x86_64-unknown-linux-musl/release/server ../se_server/bin/
+cp script/service ../se_server/bin/
+chmod +x ../se_server/bin/*
+cp server/config/* ../se_server/config
+cd ../
+
+# ui
+cd ui
+npm install
+npm run build
+mv dist/* ../se_server/html
+cd ../
+
+tar --disable-copyfile -zcvf se_server.tar.gz se_server
+rm -rf se_server
+echo "make pkg done, pkg is se_server.tar.gz"
