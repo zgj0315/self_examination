@@ -9,13 +9,15 @@ import LoginPage from "./LoginPage.tsx";
 import PdfArticleQueryPage from "./PdfArticleQueryPage.tsx";
 import PdfArticleAccessLogQueryPage from "./PdfArticleAccessLogQueryPage.tsx";
 import PdfArticleDetailPage from "./PdfArticleDetailPage.tsx";
+import HomePage from "./HomePage.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
     <Routes>
       <Route path="login" element={<LoginPage />} />
       <Route path="/" element={<AppLayout />}>
-        <Route index element={<Navigate to="/pdf_articles" replace />} />
+        <Route index element={<Navigate to="/home" replace />} />
+        <Route path="home" element={<HomePage />} />
         <Route path="articles" element={<ArticlePage />} />
         <Route path="logs" element={<LogPage />} />
         <Route path="files" element={<FilePage />} />

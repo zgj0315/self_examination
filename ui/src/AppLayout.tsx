@@ -20,6 +20,11 @@ const App: React.FC = () => {
 
   const menuItems = [
     {
+      key: "/home",
+      icon: <UserOutlined />,
+      label: "首页",
+    },
+    {
       key: "/pdf_articles",
       icon: <UserOutlined />,
       label: "文章列表",
