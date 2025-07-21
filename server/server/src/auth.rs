@@ -232,6 +232,7 @@ where
 }
 
 pub async fn token_expired_task(sled_db: sled::Db) -> anyhow::Result<()> {
+    let expired_time = 6 * 60 * 60; // 6小时
     tokio::spawn(async move {
         log::info!("token_expired_task running");
         loop {
@@ -246,7 +247,7 @@ pub async fn token_expired_task(sled_db: sled::Db) -> anyhow::Result<()> {
                         }
                     };
 
-                    if ts_now - ts >= 60 {
+                    if ts_now - ts >= expired_time {
                         if let Err(e) = sled_db.remove(&k) {
                             log::error!("sled remove err: {}", e);
                         }
