@@ -1,6 +1,6 @@
 import React from "react";
 import {
-  // UploadOutlined,
+  UploadOutlined,
   UserOutlined,
   VideoCameraOutlined,
 } from "@ant-design/icons";
@@ -24,21 +24,21 @@ const App: React.FC = () => {
       icon: <UserOutlined />,
       label: "文章列表",
     },
-    // {
-    //   key: "/articles",
-    //   icon: <UserOutlined />,
-    //   label: "文章管理",
-    // },
-    // {
-    //   key: "/logs",
-    //   icon: <VideoCameraOutlined />,
-    //   label: "操作日志",
-    // },
-    // {
-    //   key: "/files",
-    //   icon: <UploadOutlined />,
-    //   label: "文件管理",
-    // },
+    {
+      key: "/articles",
+      icon: <UserOutlined />,
+      label: "文章管理",
+    },
+    {
+      key: "/logs",
+      icon: <VideoCameraOutlined />,
+      label: "操作日志",
+    },
+    {
+      key: "/files",
+      icon: <UploadOutlined />,
+      label: "文件管理",
+    },
   ];
   const isLoggedIn = !!localStorage.getItem("token");
   if (isLoggedIn) {
@@ -113,11 +113,11 @@ const App: React.FC = () => {
               <Outlet />
             </div>
           </Content>
-          <Footer style={{ textAlign: "center" }}>
-            Ant Design ©{new Date().getFullYear()} Created by Ant UED
-          </Footer>
         </Layout>
       </Layout>
+      <Footer style={{ textAlign: "center" }}>
+        Self Examination ©{new Date().getFullYear()} Created by Zhaogj
+      </Footer>
     </Layout>
   );
 };
