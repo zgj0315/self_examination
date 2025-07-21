@@ -4,7 +4,7 @@ import {
   UserOutlined,
   VideoCameraOutlined,
 } from "@ant-design/icons";
-import { Layout, Menu, theme, Button } from "antd";
+import { Layout, Menu, theme, Button, Breadcrumb } from "antd";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import restful_api from "./RESTfulApi.tsx";
 
@@ -50,67 +50,73 @@ const App: React.FC = () => {
   }
   return (
     <Layout>
-      <Sider
-        breakpoint="lg"
-        collapsedWidth="0"
-        onBreakpoint={(broken) => {
-          console.log(broken);
-        }}
-        onCollapse={(collapsed, type) => {
-          console.log(collapsed, type);
-        }}
-      >
-        <div className="demo-logo-vertical" />
-        <Menu
-          theme="dark"
-          mode="inline"
-          defaultSelectedKeys={["4"]}
-          selectedKeys={[location.pathname]}
-          onClick={({ key }) => navigate(key)}
-          items={menuItems}
-        />
-      </Sider>
-      <Layout>
-        <Header style={{ padding: 0, background: colorBgContainer }}>
-          {localStorage.getItem("token") && (
-            <Button
-              type="link"
-              onClick={async () => {
-                const token = localStorage.getItem("token");
-                if (token) {
-                  try {
-                    await restful_api.post(`/api/logout/${token}`, null, {
-                      headers: {
-                        Authorization: `Bearer ${token}`,
-                      },
-                    });
-                  } catch (error) {
-                    console.error("Logout failed", error);
-                  }
-                  localStorage.removeItem("token");
-                  window.location.reload();
+      <Header style={{ display: "flex", alignItems: "center" }}>
+        <div className="demo-logo" />
+        {localStorage.getItem("token") && (
+          <Button
+            type="link"
+            onClick={async () => {
+              const token = localStorage.getItem("token");
+              if (token) {
+                try {
+                  await restful_api.post(`/api/logout/${token}`, null, {
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                    },
+                  });
+                } catch (error) {
+                  console.error("Logout failed", error);
                 }
-              }}
-            >
-              Logout
-            </Button>
-          )}
-        </Header>
-        <Content style={{ margin: "24px 16px 0" }}>
-          <div
+                localStorage.removeItem("token");
+                window.location.reload();
+              }
+            }}
+          >
+            Logout
+          </Button>
+        )}
+      </Header>
+      <Layout>
+        <Sider width={200} style={{ background: colorBgContainer }}>
+          <Menu
+            theme="dark"
+            mode="inline"
+            style={{ height: "100%", borderRight: 0 }}
+            defaultSelectedKeys={["4"]}
+            selectedKeys={[location.pathname]}
+            onClick={({ key }) => navigate(key)}
+            items={menuItems}
+          />
+        </Sider>
+        <Layout style={{ padding: "0 24px 24px" }}>
+          <Breadcrumb
+            items={[{ title: "Home" }, { title: "List" }, { title: "Article" }]}
+            style={{ margin: "16px 0" }}
+          />
+          <Content
             style={{
               padding: 24,
-              minHeight: 360,
+              margin: 0,
+              minHeight: 280,
               background: colorBgContainer,
               borderRadius: borderRadiusLG,
             }}
           >
-            <Outlet />
-          </div>
-        </Content>
-        <Footer style={{ textAlign: "center" }}>
-          Ant Design ©{new Date().getFullYear()} Created by Ant UED
-        </Footer>
+            <div
+              style={{
+                padding: 24,
+                minHeight: 360,
+                background: colorBgContainer,
+                borderRadius: borderRadiusLG,
+              }}
+            >
+              <Outlet />
+            </div>
+          </Content>
+          <Footer style={{ textAlign: "center" }}>
+            Ant Design ©{new Date().getFullYear()} Created by Ant UED
+          </Footer>
+        </Layout>
       </Layout>
     </Layout>
   );
