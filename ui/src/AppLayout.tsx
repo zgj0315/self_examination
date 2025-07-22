@@ -35,11 +35,6 @@ const App: React.FC = () => {
       label: "文章管理",
     },
     {
-      key: "/logs",
-      icon: <VideoCameraOutlined />,
-      label: "操作日志",
-    },
-    {
       key: "/files",
       icon: <UploadOutlined />,
       label: "文件管理",
@@ -51,6 +46,11 @@ const App: React.FC = () => {
       key: "/pdf_article_access_logs",
       icon: <VideoCameraOutlined />,
       label: "浏览记录",
+    });
+    menuItems.push({
+      key: "/logs",
+      icon: <VideoCameraOutlined />,
+      label: "操作日志",
     });
   }
   return (
