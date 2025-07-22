@@ -5,26 +5,25 @@ import { Col, Row, Statistic, message } from "antd";
 import CountUp from "react-countup";
 import restful_api from "./RESTfulApi.tsx";
 
-const Demo = () => {
-  const data = [
-    { year: "1991", value: 3 },
-    { year: "1992", value: 4 },
-    { year: "1993", value: 3.5 },
-    { year: "1994", value: 5 },
-    { year: "1995", value: 4.9 },
-    { year: "1996", value: 6 },
-    { year: "1997", value: 7 },
-    { year: "1998", value: 9 },
-    { year: "1999", value: 13 },
-  ];
-
+const DailyAccessStat = ({
+  data,
+}: {
+  data: { day: string; count: number }[];
+}) => {
   const config = {
     data,
     height: 400,
-    xField: "year",
-    yField: "value",
+    xField: "day",
+    yField: "count",
     style: {
       lineWidth: 2,
+    },
+    point: {
+      size: 5,
+      shape: "circle",
+    },
+    tooltip: {
+      showMarkers: true,
     },
   };
   return <Line {...config} />;
@@ -38,6 +37,9 @@ const App: React.FC = () => {
   const [pdfArticleCountStat, setPdfArticleCountStat] = useState<number>(0);
   const [pdfArticleAccessLogCountStat, setPdfArticleAccessLogCountStat] =
     useState<number>(0);
+  const [dailyAccessStats, setDailyAccessStats] = useState<
+    { day: string; count: number }[]
+  >([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,6 +49,7 @@ const App: React.FC = () => {
         setPdfArticleAccessLogCountStat(
           response.data.pdf_article_access_log_count
         );
+        setDailyAccessStats(response.data.daily_access_stats || []);
         message.success("查询成功");
       } catch (e) {
         console.error("查询失败: ", e);
@@ -74,7 +77,7 @@ const App: React.FC = () => {
           />
         </Col>
       </Row>
-      <Demo />
+      <DailyAccessStat data={dailyAccessStats} />
     </>
   );
 };
